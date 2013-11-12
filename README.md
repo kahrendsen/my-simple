@@ -1,18 +1,18 @@
 my-simple
 =========
 
-==Overall project idea
+#Overall project idea
 mySIMPL with type checking for variables.
 
-==Goals
+#Goals
 Type checking for variables
 
-==Caveats from Rellermeyer
+#Caveats from Rellermeyer
 While loops will be hard
 Nested functions may be challenging
 Try to have separate statements for assignment and declaration
 
-==The Super Awesome Rellermeyer Squad
+#The Super Awesome Rellermeyer Squad
 Kendall Ahrendsen - Lead Slacker
 Lyee Chong - Director of Pessimism
 Albert Haque - Head Troll
