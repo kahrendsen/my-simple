@@ -7,6 +7,7 @@ my-simple
 ####Goals
 - [x] Form the super awesome team
 - [x] Ask Rellermeyer if our idea is super awesome
+- [ ] Getting SOMETHING to work
 - [ ] Type checking for variables
 
 ####Caveats from Rellermeyer
