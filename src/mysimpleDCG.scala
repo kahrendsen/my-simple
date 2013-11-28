@@ -30,14 +30,14 @@ object Binding {
   
   def getValue(sym: Symbol): Any = {
     if(map.contains(sym)){
-      return map.get(sym).get._2
+      return map(sym)._2
     }else{
       return None
     }
   }
   def getType(sym: Symbol): Int = {
     if(map.contains(sym)){
-      return map.get(sym).get._1
+      return map(sym)._1
     }else{
       return Type.UNKNOWN
     }
@@ -117,17 +117,48 @@ class BoolAssignment(sym: Symbol) {
 }
 
 class Assignment(sym: Symbol) { // This handles expressions THIS WON'T WORKKKK D:
-  def :=(value: Int) = {
+  def :=(value: Any) = {
     val varType = Binding.getType(sym)
     if(varType == Type.UNKNOWN){
     	println("ERR : Variable not instantiated " + sym)
-    }else if(varType != Type.INT){
-    	println("ERR: Wrong type " + sym)
     }else{
-	    println("Assigning int:")
-	    println("\t" + sym + " = " + value)
-	    Binding.putValue(sym, (Type.INT, value))
+    	value match{
+    	  case s: Symbol => bindValueToSymbol(Binding.getValue(s), varType)
+    	  case _ => bindValueToSymbol(value, varType)
+    	}
     }
+  }
+  
+  def bindValueToSymbol(value: Any, varType: Int ) = {
+    value match{
+        case a: Int => {
+          if(varType != Type.INT) println("ERR")
+          println("Assigning int:")
+          println("\t" + sym + " = " + a)
+          Binding.putValue(sym, (Type.INT, a))
+        }
+        case b: Double => {
+          if(varType != Type.FLOAT) println("ERR")
+          println("Assigning float:")
+          println("\t" + sym + " = " + b)
+          Binding.putValue(sym, (Type.FLOAT, b))
+        }
+        case c: Boolean => {
+          if(varType != Type.BOOL) println("ERR")
+          println("Assigning boolean:")
+          println("\t" + sym + " = " + c)
+          Binding.putValue(sym, (Type.BOOL, c))
+        }
+        case d: String => {
+          if(varType != Type.STRING) println("ERR")
+           println("Assigning String:")
+          println("\t" + sym + " = " + d)
+          Binding.putValue(sym, (Type.STRING, d))
+        }
+        case _ => {
+          println("ERR")
+        }
+      }
   }
   
   def :=(f: Function0[Any]) = {
