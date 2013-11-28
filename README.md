@@ -25,4 +25,4 @@ my-simple
 <br>Who inspired this project and continuously movitates us by making it 10% of our grade.
 </p>
 
-xkcd.com/1296/
+http://www.xkcd.com/1296/
