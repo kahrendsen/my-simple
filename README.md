@@ -19,8 +19,10 @@ my-simple
 * Kendall Ahrendsen - Lead Slacker
 * Lyee Chong - Director of Pessimism
 * Albert Haque - Head Troll
-* Matthew Lau - Manager of Procrastination
+* Matthew Lau - Manager of Procrastination (and occasional genius)
 <p>
 * With special thanks to Rellermeyer,
 <br>Who inspired this project and continuously movitates us by making it 10% of our grade.
 </p>
+
+xkcd.com/1296/
