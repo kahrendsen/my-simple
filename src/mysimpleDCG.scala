@@ -10,63 +10,74 @@
  * \$$      \$$  \$$$$$$   \$$$$$$    \$$    \$$   \$$ \$$$$$$$$
  *
  */
-
 import scala.collection.mutable.{ Stack, HashMap }
 
 //This preserves type information
-object Type3 extends Enumeration {
-  val STRING, FLOAT, INT, BOOL, UNKNOWN = Value
+object Type {
+  val UNKNOWN = -1
+  val STRING = 0
+  val FLOAT = 1
+  val INT = 2
+  val BOOL = 3
 }
 
-class hungry {
-  def fish(k: Symbol): Any = {
-    (Binding.map(k), numerics.get(k)) match {
-      case (Some(x), None) => x
-      case (None, Some(y)) => y
-      case (None, None) => None
-      case (Some(x), Some(y)) => Some(x, y)
-    }
-  }
+
+class Holder(){
+    var stringValue = ""
+    var intValue = 0
+    var floatValue = 0.0
+    var boolValue = true
 }
+
 
 object Binding {
 
-  val map = HashMap[Symbol, (Type, Any)]()
-  def putThingIntoMap(sym: Symbol, v: (Type, Any)) {
+  var map = new HashMap[Symbol, (Int, Holder)]()
+  def putThingIntoMap(sym: Symbol, v: (Int, Holder)) {
     map.put(sym, v)
   }
-  def getThingFromMap(sym: Symbol) {
-    val valueFromMap = map.get(sym)
-  }
-
-  def getThingFromMapInt(i: Int) {
-    val valueFromMap = map.get(Symbol(i + ""))
-  }
-
-  //	val intMap = HashMap[Symbol,Int]()
-  //	val boolMap = HashMap[Symbol,Boolean]()
-  //	val stringMap = HashMap[Symbol,String]()
-  //	val floatMap = HashMap[Symbol,Float]()
-  //	
-  //	def getValue(sym:Symbol) {
-  //	  if(intMap.contains(sym)) {
-  //	    return intMap(sym)
-  //	  }
-  //	  else if (floatMap.contains(sym)) {
-  //	    value = floatMap(sym)
-  //	  }
-  //	  else {
-  //	    println("cry")
-  //	  }
-  //	}
+   def getTypeFromMap(sym: Symbol): Int = {
+      map.get(sym).get._1
+   }
+   def getIntFromMap(sym: Symbol): Int = {
+     map.get(sym).get._2.intValue
+   }
+   def getStringFromMap(sym: Symbol): String = {
+     map.get(sym).get._2.stringValue
+   }
+   def getFloatFromMap(sym: Symbol): Double = {
+     map.get(sym).get._2.floatValue
+   }
+   def getBoolFromMap(sym: Symbol): Boolean = {
+     map.get(sym).get._2.boolValue
+   }
 }
+
+  //        val intMap = HashMap[Symbol,Int]()
+  //        val boolMap = HashMap[Symbol,Boolean]()
+  //        val stringMap = HashMap[Symbol,String]()
+  //        val floatMap = HashMap[Symbol,Float]()
+  //        
+  //        def getValue(sym:Symbol) {
+  //          if(intMap.contains(sym)) {
+  //            return intMap(sym)
+  //          }
+  //          else if (floatMap.contains(sym)) {
+  //            value = floatMap(sym)
+  //          }
+  //          else {
+  //            println("cry")
+  //          }
+  //        }
 
 class StringAssignment(sym: Symbol) {
   // Bind this and add to variable list
   def :=(value: String) = {
     println("Assigning string:")
     println("\t" + sym + " = " + value)
-    Binding.putThingIntoMap(sym, (Type.STRING, value))
+    var tempHolder = new Holder()
+    tempHolder.stringValue = value
+    Binding.putThingIntoMap(sym, (Type.STRING, tempHolder))
   }
 }
 class IntAssignment(sym: Symbol) {
@@ -74,7 +85,9 @@ class IntAssignment(sym: Symbol) {
     println("Assigning int:")
     println("\t" + sym + " = " + value)
     (sym, value)
-    Binding.putThingIntoMap(sym, (Type.INT, value))
+    var tempHolder = new Holder()
+    tempHolder.intValue = value
+    Binding.putThingIntoMap(sym, (Type.INT, tempHolder))
   }
 
   def f(i: Int) = i
@@ -89,7 +102,7 @@ class IntAssignment(sym: Symbol) {
     //        lhs() + n
     //      })
     def +(rhs: Function0[Int]): Function0[Int] = (() => lhs() + rhs())
-    def -(rhs: Symbol): Function0[Int] = (() => lhs() - binds.num(rhs))
+    //def -(rhs: Symbol): Function0[Int] = (() => lhs() - binds.num(rhs))
     def -(rhs: Function0[Int]): Function0[Int] = (() => lhs() - rhs())
   }
 }
@@ -99,7 +112,9 @@ class FloatAssignment(sym: Symbol) {
       println("Assigning float:")
       println("\t" + sym + " = " + value)
       (sym, value)
-      Binding.putThingIntoMap(sym, (Type.FLOAT, value))
+      var tempHolder = new Holder()
+      tempHolder.floatValue = value
+      Binding.putThingIntoMap(sym, (Type.FLOAT, tempHolder))
     }
 }
 class BoolAssignment(sym: Symbol) {
@@ -108,7 +123,10 @@ class BoolAssignment(sym: Symbol) {
       println("Assigning bool:")
       println("\t" + sym + " = " + value)
       (sym, value)
-      Binding.putThingIntoMap(sym, (Type.BOOL, value))
+      var tempHolder = new Holder()
+      tempHolder.boolValue = value
+      Binding.putThingIntoMap(sym, (Type.BOOL, tempHolder))
+      
     }
 }
 
@@ -117,21 +135,22 @@ class Assignment(sym: Symbol) { // This handles expressions THIS WON'T WORKKKK D
     {
       println("Assigning function0(int):")
       println("\t" + sym + " = " + value())
-      Binding.putThingIntoMap(sym, (Type.INT, value()))
+      
+      //Binding.putThingIntoMap(sym, (Type.INT, value()))
     }
-  def :=(value: Function0[Float]) =
+  /*def :=(value: Function0[Float]) =
     {
       println("Assigning function0(float):")
       println("\t" + sym + " = " + value())
       Binding.putThingIntoMap(sym, (Type.FLOAT, value()))
-    }
+    }*/
 }
 
 class mysimpleDCG {
 
   implicit def symbolToAssignment(name: Symbol): Assignment = new Assignment(name)
 
-  //	implicit def declareToClass(d:Class) = new declare()
+  //        implicit def declareToClass(d:Class) = new declare()
 }
 
 object declare {
@@ -140,4 +159,3 @@ object declare {
   def float(assign: Symbol): FloatAssignment = new FloatAssignment(assign)
   def string(assign: Symbol): StringAssignment = new StringAssignment(assign)
 }
-
