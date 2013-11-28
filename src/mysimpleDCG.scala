@@ -21,49 +21,35 @@ object Type {
   val BOOL = 3
 }
 
-
-class Holder(){
-    var stringValue = ""
-    var intValue = 0
-    var floatValue = 0.0
-    var boolValue = true
-}
-
-
 object Binding {
 
   var map = new HashMap[Symbol, (Int, Any)]()
-  def putThingIntoMap(sym: Symbol, v: (Int, Any)) {
+  def putValue(sym: Symbol, v: (Int, Any)) {
     map.put(sym, v)
   }
-   def getThingFromMap(sym: Symbol): Any = {
-     return map.get(sym).get._2
-   }
+  
+  def getValue(sym: Symbol): Any = {
+    if(map.contains(sym)){
+      return map.get(sym).get._2
+    }else{
+      return None
+    }
+  }
+  def getType(sym: Symbol): Int = {
+    if(map.contains(sym)){
+      return map.get(sym).get._1
+    }else{
+      return Type.UNKNOWN
+    }
+  }
 }
-
-  //        val intMap = HashMap[Symbol,Int]()
-  //        val boolMap = HashMap[Symbol,Boolean]()
-  //        val stringMap = HashMap[Symbol,String]()
-  //        val floatMap = HashMap[Symbol,Float]()
-  //        
-  //        def getValue(sym:Symbol) {
-  //          if(intMap.contains(sym)) {
-  //            return intMap(sym)
-  //          }
-  //          else if (floatMap.contains(sym)) {
-  //            value = floatMap(sym)
-  //          }
-  //          else {
-  //            println("cry")
-  //          }
-  //        }
 
 class StringAssignment(sym: Symbol) {
   // Bind this and add to variable list
   def :=(value: String) = {
     println("Assigning string:")
     println("\t" + sym + " = " + value)
-    Binding.putThingIntoMap(sym, (Type.STRING, value))
+    Binding.putValue(sym, (Type.STRING, value))
   }
 }
 class IntAssignment(sym: Symbol) {
@@ -71,7 +57,27 @@ class IntAssignment(sym: Symbol) {
     println("Assigning int:")
     println("\t" + sym + " = " + value)
     (sym, value)
-    Binding.putThingIntoMap(sym, (Type.INT, value))
+    Binding.putValue(sym, (Type.INT, value))
+  }
+  
+  def :=(valSym: Symbol) = {
+    val value = Binding.getValue(valSym)
+    value match{
+      case a: Int => {
+        println("Assigning int:")
+        println("\t" + sym + " = " + a)
+        Binding.putValue(sym, (Type.INT, a))
+      }
+      case b: Double => {
+        println("Assigning int:")
+        val valueAsInt = (b).toInt
+        println("\t" + sym + " = " + valueAsInt)
+        Binding.putValue(sym, (Type.INT, valueAsInt))
+      }
+      case _ => {
+        println("Error:")
+      }
+    }
   }
 
   def f(i: Int) = i
@@ -96,7 +102,7 @@ class FloatAssignment(sym: Symbol) {
       println("Assigning float:")
       println("\t" + sym + " = " + value)
       (sym, value)
-      Binding.putThingIntoMap(sym, (Type.FLOAT, value))
+      Binding.putValue(sym, (Type.FLOAT, value))
     }
 }
 class BoolAssignment(sym: Symbol) {
@@ -105,51 +111,59 @@ class BoolAssignment(sym: Symbol) {
       println("Assigning bool:")
       println("\t" + sym + " = " + value)
       (sym, value)
-      Binding.putThingIntoMap(sym, (Type.BOOL, value))
+      Binding.putValue(sym, (Type.BOOL, value))
       
     }
 }
 
 class Assignment(sym: Symbol) { // This handles expressions THIS WON'T WORKKKK D:
-  def :=(f: Function0[Any]) =
-    {
+  def :=(value: Int) = {
+    val varType = Binding.getType(sym)
+    if(varType == Type.UNKNOWN){
+    	println("ERR : Variable not instantiated " + sym)
+    }else if(varType != Type.INT){
+    	println("ERR: Wrong type " + sym)
+    }else{
+	    println("Assigning int:")
+	    println("\t" + sym + " = " + value)
+	    Binding.putValue(sym, (Type.INT, value))
+    }
+  }
+  
+  def :=(f: Function0[Any]) = {
       val value = f()
-      f() match{
+      value match{
         case a: Int => {
           println("Assigning function0(int):")
-          println("\t" + sym + " = " + value)
-          Binding.putThingIntoMap(sym, (Type.INT, value))
+          println("\t" + sym + " = " + a)
+          Binding.putValue(sym, (Type.INT, a))
         };
         case b: String => {
           println("Assigning function0(String):")
-          println("\t" + sym + " = " + value)
-          Binding.putThingIntoMap(sym, (Type.STRING, value))
+          println("\t" + sym + " = " + b)
+          Binding.putValue(sym, (Type.STRING, b))
         };
         case c: Boolean => {
           println("Assigning function0(Boolean):")
-          println("\t" + sym + " = " + value)
-          Binding.putThingIntoMap(sym, (Type.BOOL, value))
+          println("\t" + sym + " = " + c)
+          Binding.putValue(sym, (Type.BOOL, c))
         };
         case d: Double => {
           println("Assigning function0(Float):")
-          println("\t" + sym + " = " + value)
-          Binding.putThingIntoMap(sym, (Type.FLOAT, value))
+          println("\t" + sym + " = " + d)
+          Binding.putValue(sym, (Type.FLOAT, d))
         };
+        case _ => {
+          println("ERR:")
+        }
       }
     }
-  /*def :=(value: Function0[Float]) =
-    {
-      println("Assigning function0(float):")
-      println("\t" + sym + " = " + value())
-      Binding.putThingIntoMap(sym, (Type.FLOAT, value()))
-    }*/
 }
 
 class mysimpleDCG {
 
   implicit def symbolToAssignment(name: Symbol): Assignment = new Assignment(name)
 
-  //        implicit def declareToClass(d:Class) = new declare()
 }
 
 object declare {
