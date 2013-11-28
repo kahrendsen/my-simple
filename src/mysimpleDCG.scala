@@ -1,3 +1,5 @@
+
+
 /**
  * __       __   ______    ______  ________   ______   ________
  * |  \     /  \ /      \  /      \|        \ /      \ |        \
@@ -32,24 +34,12 @@ class Holder(){
 
 object Binding {
 
-  var map = new HashMap[Symbol, (Int, Holder)]()
-  def putThingIntoMap(sym: Symbol, v: (Int, Holder)) {
+  var map = new HashMap[Symbol, (Int, Any)]()
+  def putThingIntoMap(sym: Symbol, v: (Int, Any)) {
     map.put(sym, v)
   }
-   def getTypeFromMap(sym: Symbol): Int = {
-      map.get(sym).get._1
-   }
-   def getIntFromMap(sym: Symbol): Int = {
-     map.get(sym).get._2.intValue
-   }
-   def getStringFromMap(sym: Symbol): String = {
-     map.get(sym).get._2.stringValue
-   }
-   def getFloatFromMap(sym: Symbol): Double = {
-     map.get(sym).get._2.floatValue
-   }
-   def getBoolFromMap(sym: Symbol): Boolean = {
-     map.get(sym).get._2.boolValue
+   def getThingFromMap(sym: Symbol): Any = {
+     return map.get(sym).get._2
    }
 }
 
@@ -75,9 +65,7 @@ class StringAssignment(sym: Symbol) {
   def :=(value: String) = {
     println("Assigning string:")
     println("\t" + sym + " = " + value)
-    var tempHolder = new Holder()
-    tempHolder.stringValue = value
-    Binding.putThingIntoMap(sym, (Type.STRING, tempHolder))
+    Binding.putThingIntoMap(sym, (Type.STRING, value))
   }
 }
 class IntAssignment(sym: Symbol) {
@@ -85,9 +73,7 @@ class IntAssignment(sym: Symbol) {
     println("Assigning int:")
     println("\t" + sym + " = " + value)
     (sym, value)
-    var tempHolder = new Holder()
-    tempHolder.intValue = value
-    Binding.putThingIntoMap(sym, (Type.INT, tempHolder))
+    Binding.putThingIntoMap(sym, (Type.INT, value))
   }
 
   def f(i: Int) = i
@@ -112,9 +98,7 @@ class FloatAssignment(sym: Symbol) {
       println("Assigning float:")
       println("\t" + sym + " = " + value)
       (sym, value)
-      var tempHolder = new Holder()
-      tempHolder.floatValue = value
-      Binding.putThingIntoMap(sym, (Type.FLOAT, tempHolder))
+      Binding.putThingIntoMap(sym, (Type.FLOAT, value))
     }
 }
 class BoolAssignment(sym: Symbol) {
@@ -123,20 +107,37 @@ class BoolAssignment(sym: Symbol) {
       println("Assigning bool:")
       println("\t" + sym + " = " + value)
       (sym, value)
-      var tempHolder = new Holder()
-      tempHolder.boolValue = value
-      Binding.putThingIntoMap(sym, (Type.BOOL, tempHolder))
+      Binding.putThingIntoMap(sym, (Type.BOOL, value))
       
     }
 }
 
 class Assignment(sym: Symbol) { // This handles expressions THIS WON'T WORKKKK D:
-  def :=(value: Function0[Int]) =
+  def :=(f: Function0[Any]) =
     {
-      println("Assigning function0(int):")
-      println("\t" + sym + " = " + value())
-      
-      //Binding.putThingIntoMap(sym, (Type.INT, value()))
+      val value = f()
+      f() match{
+        case a: Int => {
+          println("Assigning function0(int):")
+          println("\t" + sym + " = " + value)
+          Binding.putThingIntoMap(sym, (Type.INT, value))
+        };
+        case b: String => {
+          println("Assigning function0(String):")
+          println("\t" + sym + " = " + value)
+          Binding.putThingIntoMap(sym, (Type.STRING, value))
+        };
+        case c: Boolean => {
+          println("Assigning function0(Boolean):")
+          println("\t" + sym + " = " + value)
+          Binding.putThingIntoMap(sym, (Type.BOOL, value))
+        };
+        case d: Double => {
+          println("Assigning function0(Float):")
+          println("\t" + sym + " = " + value)
+          Binding.putThingIntoMap(sym, (Type.FLOAT, value))
+        };
+      }
     }
   /*def :=(value: Function0[Float]) =
     {
@@ -159,3 +160,5 @@ object declare {
   def float(assign: Symbol): FloatAssignment = new FloatAssignment(assign)
   def string(assign: Symbol): StringAssignment = new StringAssignment(assign)
 }
+
+
