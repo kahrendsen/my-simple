@@ -1,5 +1,3 @@
-
-
 /**
  * __       __   ______    ______  ________   ______   ________
  * |  \     /  \ /      \  /      \|        \ /      \ |        \
@@ -160,5 +158,3 @@ object declare {
   def float(assign: Symbol): FloatAssignment = new FloatAssignment(assign)
   def string(assign: Symbol): StringAssignment = new StringAssignment(assign)
 }
-
-
