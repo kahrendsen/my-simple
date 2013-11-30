@@ -10,7 +10,9 @@
  * \$$      \$$  \$$$$$$   \$$$$$$    \$$    \$$   \$$ \$$$$$$$$
  *
  */
-import scala.collection.mutable.{ Stack, HashMap }
+
+import scala.collection.mutable.HashMap
+import scala.collection.mutable.LinkedList
 
 //This preserves type information
 object Type {
@@ -21,27 +23,73 @@ object Type {
   val BOOL = 3
 }
 
-object Binding {
+object PRINT_TYPES {
+  def apply() = Binding.printAll()
+}
 
-  var map = new HashMap[Symbol, (Int, Any)]()
+object Binding {
+  var scopedMaps = new LinkedList[HashMap[Symbol, (Int, Any)]]()
+  inception()
+  
+  def inception() = scopedMaps = scopedMaps.+:(new HashMap[Symbol, (Int, Any)]())
+  def kick() = scopedMaps = scopedMaps.next
+  
   def putValue(sym: Symbol, v: (Int, Any)) {
-    map.put(sym, v)
+    val mapContaining = getDeepestMapWith(sym)
+    if(mapContaining == null)
+      scopedMaps(0).put(sym, v)
+    else
+      mapContaining.put(sym, v)
   }
   
   def getValue(sym: Symbol): Any = {
-    if(map.contains(sym)){
-      return map(sym)._2
+    val mapContaining = getDeepestMapWith(sym)
+    if(mapContaining != null){
+      return mapContaining(sym)._2
     }else{
       return None
     }
   }
+  
   def getType(sym: Symbol): Int = {
-    if(map.contains(sym)){
-      return map(sym)._1
+    val mapContaining = getDeepestMapWith(sym)
+    if(mapContaining != null){
+      return mapContaining(sym)._1
     }else{
       return Type.UNKNOWN
     }
   }
+  
+    def getDeepestMapWith(sym: Symbol): HashMap[Symbol, (Int, Any)] = {
+    for(currentMap <- scopedMaps) yield {
+      if(currentMap.contains(sym))
+        return currentMap
+    }
+    return null
+  }
+  
+  def printAll() = {
+    
+    var currentLevel = scopedMaps.size
+    for(currentMap <- scopedMaps){
+    	println(currentLevel + " levels deep.")
+	    for((key, value) <- currentMap){
+	      print(key + " --> " + value._2 + ":")
+	      value._1 match{
+	        case Type.STRING => println("String")
+	        case Type.FLOAT => println("Float")
+	        case Type.INT => println("Int")
+	        case Type.BOOL => println("Bool")
+	        case _ => println("Unknown")
+	      }
+	    }
+    	currentLevel-=1
+    }
+  }
+}
+
+class FunctionDeclaration(name: Symbol, param: Symbol) {
+  
 }
 
 class StringAssignment(sym: Symbol) {
@@ -192,7 +240,6 @@ class Assignment(sym: Symbol) { // This handles expressions THIS WON'T WORKKKK D
 }
 
 class mysimpleDCG {
-
   implicit def symbolToAssignment(name: Symbol): Assignment = new Assignment(name)
 
 }
@@ -202,4 +249,5 @@ object declare {
   def bool(assign: Symbol): BoolAssignment = new BoolAssignment(assign)
   def float(assign: Symbol): FloatAssignment = new FloatAssignment(assign)
   def string(assign: Symbol): StringAssignment = new StringAssignment(assign)
+  def func(name: Symbol, param: Symbol): FunctionDeclaration = new FunctionDeclaration(name, param)
 }
