@@ -1,18 +1,19 @@
 object Albert extends mysimpleDCG {
 
   def main(args:Array[String]) = {
-       declare newVar 'matt := 10
-       declare newVar 'random := 'matt
-       declare newVar 'test := 'matt
-       declare newVar 'happen := "Ready"
-       declare function('matthew, 'justice)
+       DECLARE NEWVAR 'matt := 10
+       DECLARE NEWVAR 'random := 'matt
+       DECLARE NEWVAR 'test := 'matt
+       DECLARE NEWVAR 'happen := "Ready"
+       DECLARE FUNCTION('matthew, 'justice)
          'justice := 5
          RETURN ('justice)
-         declare function('happy, 'sad)
-         endfunction()
-           PRINT_TYPES()
-       endfunction()
-       PRINT_TYPES()
+       
+         DECLARE FUNCTION('jane, 'jerry)
+         ENDFUNCTION
+         
+       ENDFUNCTION
+       PRINT_TYPES
        var x = 3
        
   }
