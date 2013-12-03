@@ -29,12 +29,12 @@ class mysimpleDCG {
     def toString(typeConst: Int): String =
       {
         typeConst match {
-          case Type.UNDEF => return "undefined"
-          case Type.UNKNOWN => return "unknown"
-          case Type.STRING => return "string"
-          case Type.FLOAT => return "float"
-          case Type.INT => return "int"
-          case Type.BOOL => return "bool"
+          case Type.UNDEF => return "UNDEFINED"
+          case Type.UNKNOWN => return "UNKNOWN"
+          case Type.STRING => return "STRING"
+          case Type.FLOAT => return "FLOAT"
+          case Type.INT => return "INT"
+          case Type.BOOL => return "BOOL"
         }
       }
   }
@@ -57,7 +57,7 @@ class mysimpleDCG {
         ERROR.alreadyDef(sym)
       else {
         scopedMaps(0).put(sym, v)
-        println("" + sym + ":" + Type.toString(v))
+        println(sym + ":" + Type.toString(v))
       }
     }
 
@@ -66,7 +66,7 @@ class mysimpleDCG {
       val mapContaining = getDeepestMapWith(sym)
       if (mapContaining != null) {
         mapContaining.put(sym, v)
-        println("" + sym + ":" + Type.toString(v))
+        println(sym + ":" + Type.toString(v))
       } else
         ERROR.undef(sym)
     }
@@ -95,7 +95,7 @@ class mysimpleDCG {
       for (currentMap <- scopedMaps) {
         println(currentLevel + " levels deep.")
         for ((key, value) <- currentMap) {
-          print("" + key + " --> :")
+          print(key + " --> :")
           value match {
             case Type.STRING => println("String")
             case Type.FLOAT => println("Float")
@@ -160,23 +160,88 @@ class mysimpleDCG {
     }
   }
 
-  var numIf: Int = 0
-  def IF(cond: Any) = {
-    numIf += 1
-    Binding.inception
+  object MyStack {
+    val IF = 0
+    val WHILE = 1
+    val scopingStack = new Stack[Int]()
 
+    def push(value: Int) = scopingStack.push(value)
+    def pop(): Int = scopingStack.pop()
+    def peek(): Int = {
+      val last = scopingStack.pop()
+      scopingStack.push(last)
+      last
+    }
+    def isEmpty(): Boolean = scopingStack.length == 0
+  }
+
+  var numIf: Int = 0
+  def WHILE(cond: Any) = {
+    Conditional(cond, MyStack.WHILE)
+  }
+
+  def IF(cond: Any) = {
+    Conditional(cond, MyStack.IF)
+  }
+
+  def Conditional(cond: Any, t: Int) = {
+    MyStack.push(t)
+    cond match {
+      case a: Int => ERROR.wrongIf(Type.INT)
+      case b: Double => ERROR.wrongIf(Type.FLOAT)
+      case c: String => ERROR.wrongIf(Type.STRING)
+      case d: Boolean => {
+
+      }
+      case s: Symbol => {
+        val condType = Binding.get(s)
+        if (condType != Type.BOOL)
+          if (t == MyStack.IF)
+            ERROR.wrongIf(condType)
+          else
+            ERROR.wrongWhile(condType)
+      }
+      case f: Function0[Int] => {
+        val condType: Int = f()
+        if (condType != Type.BOOL)
+          ERROR.wrongIf(condType)
+      }
+      case _ => {
+        if (t == MyStack.IF)
+          ERROR.wrongIf(Type.UNKNOWN)
+        else
+          ERROR.wrongWhile(Type.UNKNOWN)
+      }
+    }
+    Binding.inception
+  }
+
+  def ENDWHILE() = {
+    if (MyStack.pop() != MyStack.WHILE)
+      println("ERROR: Attempting to close unopened 'WHILE'")
+    Binding.kick
   }
 
   def ELSE() = {
     Binding.kick
+    if (MyStack.peek() != MyStack.IF)
+      println("ERROR: Attempting to ELSE unopened 'IF'")
     Binding.inception
   }
 
   def ENDIF() = {
-    numIf -= 1
-    if (numIf < 0)
-      println("ERORR: Attempting to close unopened 'IF'")
+    if (MyStack.pop() != MyStack.IF)
+      println("ERROR: Attempting to close unopened 'IF'")
     Binding.kick
+  }
+
+  def ENDALL() = {
+    while (!MyStack.isEmpty) {
+      MyStack.pop match {
+        case MyStack.IF => println("ERROR: Unclosed IF")
+        case MyStack.WHILE => println("ERROR: Unclosed WHILE")
+      }
+    }
   }
 
   class Assignment(sym: Symbol) {
@@ -201,6 +266,7 @@ class mysimpleDCG {
         }
       }
     }
+
     def bindToSymbol(value: Any, varType: Int) = {
       value match {
         case a: Int => {
@@ -223,7 +289,6 @@ class mysimpleDCG {
             ERROR.wrongType(sym, Type.STRING)
           Binding.put(sym, Type.STRING)
         }
-        //case f: Function0[Int] => {
         case f: Function0[Int] => {
           val valType = f()
           if (valType != varType)
@@ -232,27 +297,6 @@ class mysimpleDCG {
         }
         case _ => {
           ERROR.wrongType(sym, Type.UNKNOWN)
-        }
-      }
-    }
-
-    def :=(f: Function0[Any]) = {
-      val value = f()
-      value match {
-        case a: Int => {
-          Binding.put(sym, Type.INT)
-        }
-        case b: String => {
-          Binding.put(sym, Type.STRING)
-        }
-        case c: Boolean => {
-          Binding.put(sym, Type.BOOL)
-        }
-        case d: Double => {
-          Binding.put(sym, Type.FLOAT)
-        }
-        case _ => {
-          println("ERR:")
         }
       }
     }
@@ -294,53 +338,22 @@ class mysimpleDCG {
   }
 
   implicit def symbolToAssignment(name: Symbol): Assignment = new Assignment(name)
-  implicit def binaryRelation(any: Any): Int = MathFunction(any)
-
-  /*
-   * We're doing strings. need to do def -(...) and def *(...) etc for all the otehr functions.
-   * also need bools. floats/ints are done for +
-   */
-  case class MathFunction(lhs: Any) {
-    def +(rhs: Any): Function0[Any] =
-      {
-        () =>
-          {
-            var lhsType = lhs match {
-              case x: Function0[Any] => x()
-              case x: Symbol => Binding.get(x)
-              case x: Int => Type.INT
-              case x: String => Type.STRING
-              case _ => println("ERROR")
-            }
-
-            if (lhsType == Type.INT) {
-              rhs match {
-                case y: Int => Type.INT
-                case y: Double => Type.FLOAT
-              }
-            } else if (lhsType == Type.FLOAT) {
-              ()=>Type.FLOAT
-//              rhs match {
-//                
-//                case y: Int => Type.INT
-//                case y: Double => Type.FLOAT
-//              }
-            } else {
-              println("ERRR")
-            }
-          }
-      }
-  }
 
   object ERROR {
     def alreadyDef(sym: Symbol) = {
       println("ERROR:" + sym + " is already defined with type " + Type.toString(Binding.get(sym)))
     }
     def wrongType(sym: Symbol, attempted: Int) = {
-      println("ERROR: Attempted to assign type" + Type.toString(attempted) + " to " + sym + ":" + Type.toString(Binding.get(sym)))
+      println("ERROR: Attempted to assign type " + Type.toString(attempted) + " to " + sym + ":" + Type.toString(Binding.get(sym)))
     }
     def undef(sym: Symbol) = {
       println("ERROR: attempt to access undefined " + sym)
+    }
+    def wrongIf(attempted: Int) = {
+      println("ERROR: IF expected type " + Type.toString(Type.BOOL) + " got type " + Type.toString(attempted))
+    }
+    def wrongWhile(attempted: Int) = {
+      println("ERROR: WHILE expected type " + Type.toString(Type.BOOL) + " got type " + Type.toString(attempted))
     }
 
   }
