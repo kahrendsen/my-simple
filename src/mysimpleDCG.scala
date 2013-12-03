@@ -19,6 +19,7 @@ class mysimpleDCG {
 
   //This preserves type information
   object Type {
+    val INCOMP = -3
     val UNDEF = -2
     val UNKNOWN = -1
     val STRING = 0
@@ -35,6 +36,7 @@ class mysimpleDCG {
           case Type.FLOAT => return "FLOAT"
           case Type.INT => return "INT"
           case Type.BOOL => return "BOOL"
+          case Type.INCOMP => return "INCOMPATIBLE"
         }
       }
   }
@@ -44,12 +46,17 @@ class mysimpleDCG {
   object Binding {
     var scopedMaps = new LinkedList[HashMap[Symbol, Int]]()
     inception()
+    declareValue(ds, Type.UNKNOWN)
 
     // we use this when we go in a scope
     def inception() = scopedMaps = scopedMaps.+:(new HashMap[Symbol, Int]())
     // we use this to get out of a scope
     def kick() = scopedMaps = scopedMaps.next
 
+    def privatePut(sym: Symbol, v: Int) = {
+      scopedMaps(0).put(sym, v)
+    }
+    
     // use this to declare a variable for the first time in our scope
     // returns an error if the variable already exists in the topmost scope
     def declareValue(sym: Symbol, v: Int) = {
@@ -57,7 +64,7 @@ class mysimpleDCG {
         ERROR.alreadyDef(sym)
       else {
         scopedMaps(0).put(sym, v)
-        println(sym + ":" + Type.toString(v))
+        println(""+ sym + ":" + Type.toString(v))
       }
     }
 
@@ -66,7 +73,7 @@ class mysimpleDCG {
       val mapContaining = getDeepestMapWith(sym)
       if (mapContaining != null) {
         mapContaining.put(sym, v)
-        println(sym + ":" + Type.toString(v))
+        println(""+sym + ":" + Type.toString(v))
       } else
         ERROR.undef(sym)
     }
@@ -95,7 +102,7 @@ class mysimpleDCG {
       for (currentMap <- scopedMaps) {
         println(currentLevel + " levels deep.")
         for ((key, value) <- currentMap) {
-          print(key + " --> :")
+          print(""+key + " --> :")
           value match {
             case Type.STRING => println("String")
             case Type.FLOAT => println("Float")
@@ -301,7 +308,7 @@ class mysimpleDCG {
       }
     }
   }
-
+  
   class Thing(sym: Symbol) {
     def :=(value: Any) = {
       value match {
@@ -323,7 +330,9 @@ class mysimpleDCG {
             Binding.put(s, Type.UNKNOWN)
           } else if (valueType == Type.UNDEF) {
             ERROR.undef(s)
-          } else {
+          } else if (valueType == Type.INCOMP){
+            println("Wrong Types")
+          }else {
             Binding.declareValue(sym, valueType)
           }
         }
@@ -339,42 +348,55 @@ class mysimpleDCG {
 
   implicit def symbolToAssignment(name: Symbol): Assignment = new Assignment(name)
   
-  implicit def binaryRelation(any: Any): Int = MathFunction(any)
+  implicit def binaryRelation(any: Any): MathFunction = MathFunction(any)
 
   /*
    * We're doing strings. need to do def -(...) and def *(...) etc for all the otehr functions.
    * also need bools. floats/ints are done for +
    */
+  val ds = 'dummySymbol
   case class MathFunction(lhs: Any) {
-    def +(rhs: Any): Function0[Any] =
-      {
-        () =>
-          {
-            var lhsType = lhs match {
-              case x: Function0[Any] => x()
-              case x: Symbol => Binding.get(x)
-              case x: Int => Type.INT
-              case x: String => Type.STRING
-              case _ => println("ERROR")
-            }
-
-            if (lhsType == Type.INT) {
-              rhs match {
-                case y: Int => Type.INT
-                case y: Double => Type.FLOAT
-              }
-            } else if (lhsType == Type.FLOAT) {
-              ()=>Type.FLOAT
-//              rhs match {
-//                
-//                case y: Int => Type.INT
-//                case y: Double => Type.FLOAT
-//              }
-            } else {
-              println("ERRR")
-            }
-          }
+    
+    def +(rhs: Any): Symbol =
+    {
+    	val left = typeSide(lhs)
+    	val right = typeSide(rhs)
+    	left match{
+    	  case Type.INT => {
+    	    right match {
+    	      case Type.INT => Binding.privatePut(ds, Type.INT)
+    	      case Type.FLOAT => Binding.privatePut(ds, Type.FLOAT)
+    	      case _ => Binding.privatePut(ds, Type.INCOMP)
+    	    }
+    	  }
+    	  case Type.FLOAT => {
+    	    right match{
+    	      case Type.INT => Binding.privatePut(ds, Type.FLOAT)
+    	      case Type.FLOAT => Binding.privatePut(ds, Type.FLOAT)
+    	      case _ => Binding.privatePut(ds, Type.INCOMP)
+    	    }
+    	  }
+    	  case Type.STRING => {
+    	    if(right == Type.STRING)
+    	      Binding.privatePut(ds, Type.FLOAT)
+    	    else
+    	      Binding.privatePut(ds, Type.INCOMP)
+    	  }
+    	  case _ => Binding.privatePut(ds, Type.INCOMP)
+    	}
+    	return ds
+    }
+    
+    def typeSide(side: Any): Int = {
+      side match {
+        case x: Int => return Type.INT
+        case x: Double => return Type.FLOAT
+        case x: String => return Type.STRING
+        case x: Boolean => return Type.BOOL
+        case x: Symbol => return Binding.get(x)
+        case _ => return Type.UNKNOWN
       }
+    }
   }
 
   
@@ -385,6 +407,9 @@ class mysimpleDCG {
     }
     def wrongType(sym: Symbol, attempted: Int) = {
       println("ERROR: Attempted to assign type " + Type.toString(attempted) + " to " + sym + ":" + Type.toString(Binding.get(sym)))
+    }
+    def incompType(sym: Symbol) = {
+      println("ERROR: Attempted to assign to " + sym +":" + Type.toString(Binding.get(sym)) + " Bad Types")
     }
     def undef(sym: Symbol) = {
       println("ERROR: attempt to access undefined " + sym)
