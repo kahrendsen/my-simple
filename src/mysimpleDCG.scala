@@ -161,15 +161,49 @@ class mysimpleDCG{
 	  }
 	}
 	
+	object MyStack {
+	  val IF = 0
+	  val WHILE = 1
+	  val scopingStack = new Stack[Int]()
+	  
+	  def push(value: Int) = scopingStack.push(value)
+	  def pop(value: Int):Int = scopingStack.pop()
+	  def peek(value:Int):Int = {
+	    val last = scopingStack.pop()
+	    scopingStack.push(last)
+	    last
+	  }
+	}
+	
 	var numIf:Int = 0
 	def IF(cond: Any) = {
 	  numIf += 1
+	  cond match{
+	    case a: Int => ERROR.wrongIf(Type.INT)
+	    case b: Double => ERROR.wrongIf(Type.FLOAT)
+	    case c: String => ERROR.wrongIf(Type.STRING)
+	    case d: Boolean => {
+	      
+	    }
+	    case s: Symbol =>{
+	      val condType = Binding.get(s)
+	      if(condType != Type.BOOL)
+	        ERROR.wrongIf(condType)
+	    }
+	    case f: Function0[Int] => {
+	      val condType:Int = f()
+	      if(condType != Type.BOOL)
+	        ERROR.wrongIf(condType)
+	    }
+	    case _ => ERROR.wrongIf(Type.UNKNOWN)
+	  }
 	  Binding.inception
-	  
 	}
 	
 	def ELSE() = {
 	  Binding.kick
+	  if ( numIf < 1)
+	    println("ERROR: Attempting to ELSE unopened 'IF'")
 	  Binding.inception
 	}
 	
@@ -225,32 +259,17 @@ class mysimpleDCG{
 	        	  ERROR.wrongType(sym, Type.STRING)
 	          Binding.put(sym, Type.STRING)
 	        }
+	        case f: Function0[Int] => {
+	          val valType = f()
+	          if(valType != varType)
+	            ERROR.wrongType(sym, valType)
+	          Binding.put(sym, valType)
+	        }
 	        case _ => {
-	          println("ERR")
+	          ERROR.wrongType(sym, Type.UNKNOWN)
 	        }
 	      }
 	  }
-	  
-	  def :=(f: Function0[Any]) = {
-	      val value = f()
-	      value match{
-	        case a: Int => {
-	          Binding.put(sym, Type.INT)
-	        }
-	        case b: String => {
-	          Binding.put(sym, Type.STRING)
-	        }
-	        case c: Boolean => {
-	          Binding.put(sym, Type.BOOL)
-	        }
-	        case d: Double => {
-	          Binding.put(sym, Type.FLOAT)
-	        }
-	        case _ => {
-	          println("ERR:")
-	        }
-	      }
-	    }
 	}
 	
 	class Thing(sym: Symbol) {
@@ -295,10 +314,13 @@ class mysimpleDCG{
 	    println("ERROR:" + sym + " is already defined with type " + Type.toString(Binding.get(sym)))
 	  }
 	  def wrongType(sym: Symbol, attempted: Int) = {
-	    println("ERROR: Attempted to assign type" + Type.toString(attempted) + " to " + sym + ":" + Type.toString(Binding.get(sym)))
+	    println("ERROR: Attempted to assign type " + Type.toString(attempted) + " to " + sym + ":" + Type.toString(Binding.get(sym)))
 	  }
 	  def undef(sym: Symbol) = {
 	    println("ERROR: attempt to access undefined "+ sym)
+	  }
+	  def wrongIf(attempted: Int) = {
+	    println("ERROR: IF expected type " + Type.toString(Type.BOOL)+ " got type "+ Type.toString(attempted))
 	  }
 	  
 	}
