@@ -338,6 +338,46 @@ class mysimpleDCG {
   }
 
   implicit def symbolToAssignment(name: Symbol): Assignment = new Assignment(name)
+  
+  implicit def binaryRelation(any: Any): Int = MathFunction(any)
+
+  /*
+   * We're doing strings. need to do def -(...) and def *(...) etc for all the otehr functions.
+   * also need bools. floats/ints are done for +
+   */
+  case class MathFunction(lhs: Any) {
+    def +(rhs: Any): Function0[Any] =
+      {
+        () =>
+          {
+            var lhsType = lhs match {
+              case x: Function0[Any] => x()
+              case x: Symbol => Binding.get(x)
+              case x: Int => Type.INT
+              case x: String => Type.STRING
+              case _ => println("ERROR")
+            }
+
+            if (lhsType == Type.INT) {
+              rhs match {
+                case y: Int => Type.INT
+                case y: Double => Type.FLOAT
+              }
+            } else if (lhsType == Type.FLOAT) {
+              ()=>Type.FLOAT
+//              rhs match {
+//                
+//                case y: Int => Type.INT
+//                case y: Double => Type.FLOAT
+//              }
+            } else {
+              println("ERRR")
+            }
+          }
+      }
+  }
+
+  
 
   object ERROR {
     def alreadyDef(sym: Symbol) = {
