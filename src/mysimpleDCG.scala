@@ -13,7 +13,7 @@
 
 import scala.collection.mutable.HashMap
 import scala.collection.mutable.LinkedList
-import java.util.Stack
+import scala.collection.mutable.Stack
 
 class mysimpleDCG{
 
@@ -40,9 +40,7 @@ class mysimpleDCG{
 	  }
 	}
 	
-	object PRINT_TYPES {
-	  def apply() = Binding.printAll()
-	}
+	def PRINT_TYPES = Binding.printAll()
 	
 	object Binding {
 	  var scopedMaps = new LinkedList[HashMap[Symbol, Int]]()
@@ -109,6 +107,7 @@ class mysimpleDCG{
 		    }
 	    	currentLevel-=1
 	    }
+	    println("\n")
 	  }
 	}
 	
@@ -124,26 +123,26 @@ class mysimpleDCG{
 	  Binding.inception()
 	  functionStack.push((name, param))
 	  Binding.declareValue(param, Type.UNKNOWN)
-	  
-	  
 	}
 	
 	// pop off the function stack, go out a scope, and assign the parameter type to the function
-	object endfunction{
-	  def apply() = {
-	    if(functionStack.empty())
+	def ENDFUNCTION() = {
+	    println(functionStack)
+		if(functionStack.length < 1){
 	      println("ERROR: No more functions to end")
-	  
-	    val name = functionStack.peek()._1
-	    val param = functionStack.peek()._2
+		}
+	    val tuple = functionStack.pop
+	    val name = tuple._1
+	    val param = tuple._2
 	    functionParam.put(name, Binding.get(param))
 	    Binding.kick()
-	  }
 	}
 	
 	object RETURN {
 	  def apply(value: Any) = {
-	    val name = functionStack.peek()._1
+	    val tuple = functionStack.pop
+	    val name = tuple._1
+	    functionStack.push(tuple)
 	    value match{
 	      case a:Int => putFunctionType(name, Type.INT)
 	      case b:Double => putFunctionType(name, Type.FLOAT)
@@ -160,6 +159,25 @@ class mysimpleDCG{
 	      ERROR.wrongType(name, fType)
 	    }
 	  }
+	}
+	
+	var numIf:Int = 0
+	def IF(cond: Any) = {
+	  numIf += 1
+	  Binding.inception
+	  
+	}
+	
+	def ELSE() = {
+	  Binding.kick
+	  Binding.inception
+	}
+	
+	def ENDIF() = {
+	  numIf -= 1
+	  if( numIf < 0)
+	    println("ERORR: Attempting to close unopened 'IF'")
+	  Binding.kick
 	}
 	
 	class Assignment(sym: Symbol) {
@@ -264,10 +282,10 @@ class mysimpleDCG{
 	  }
 	}
 	
-	object declare {
-	  def function(name: Symbol, param: Symbol): Function = new Function(name, param)
+	object DECLARE {
+	  def FUNCTION(name: Symbol, param: Symbol): Function = new Function(name, param)
 	  //Everything is just newVar now, we inference from that
-	  def newVar(name: Symbol): Thing = new Thing(name)
+	  def NEWVAR(name: Symbol): Thing = new Thing(name)
 	}
 	
 	implicit def symbolToAssignment(name: Symbol): Assignment = new Assignment(name)
