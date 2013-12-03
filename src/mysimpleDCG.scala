@@ -160,24 +160,89 @@ class mysimpleDCG {
     }
   }
 
-  var numIf: Int = 0
-  def IF(cond: Any) = {
-    numIf += 1
-    Binding.inception
-
-  }
-
-  def ELSE() = {
-    Binding.kick
-    Binding.inception
-  }
-
-  def ENDIF() = {
-    numIf -= 1
-    if (numIf < 0)
-      println("ERORR: Attempting to close unopened 'IF'")
-    Binding.kick
-  }
+  object MyStack {
+	  val IF = 0
+	  val WHILE = 1
+	  val scopingStack = new Stack[Int]()
+	  
+	  def push(value: Int) = scopingStack.push(value)
+	  def pop():Int = scopingStack.pop()
+	  def peek():Int = {
+	    val last = scopingStack.pop()
+	    scopingStack.push(last)
+	    last
+	  }
+	  def isEmpty():Boolean = scopingStack.length == 0
+	}
+	
+	var numIf:Int = 0
+	def WHILE(cond: Any) = {
+	  Conditional(cond, MyStack.WHILE)
+	}
+	
+	def IF(cond: Any) = {
+	  Conditional(cond, MyStack.IF)
+	}
+	
+	def Conditional(cond: Any, t: Int) = {
+	  MyStack.push(t)
+	  cond match{
+	    case a: Int => ERROR.wrongIf(Type.INT)
+	    case b: Double => ERROR.wrongIf(Type.FLOAT)
+	    case c: String => ERROR.wrongIf(Type.STRING)
+	    case d: Boolean => {
+	      
+	    }
+	    case s: Symbol =>{
+	      val condType = Binding.get(s)
+	      if(condType != Type.BOOL)
+	        if(t == MyStack.IF)
+	          ERROR.wrongIf(condType)
+	        else
+	          ERROR.wrongWhile(condType)
+	    }
+	    case f: Function0[Int] => {
+	      val condType:Int = f()
+	      if(condType != Type.BOOL)
+	        ERROR.wrongIf(condType)
+	    }
+	    case _ => {
+	      if(t == MyStack.IF)
+	        ERROR.wrongIf(Type.UNKNOWN)
+	      else
+	        ERROR.wrongWhile(Type.UNKNOWN)
+	    }
+	  }
+	  Binding.inception
+	}
+	
+	def ENDWHILE() = {
+	  if(MyStack.pop() != MyStack.WHILE)
+	    println("ERROR: Attempting to close unopened 'WHILE'")
+	  Binding.kick
+	}
+	
+	def ELSE() = {
+	  Binding.kick
+	  if (MyStack.peek() != MyStack.IF)
+	    println("ERROR: Attempting to ELSE unopened 'IF'")
+	  Binding.inception
+	}
+	
+	def ENDIF() = {
+	  if(MyStack.pop() != MyStack.IF)
+	    println("ERROR: Attempting to close unopened 'IF'")
+	  Binding.kick
+	}
+	
+	def ENDALL() = {
+	  while(!MyStack.isEmpty){
+	    MyStack.pop match{
+	      case MyStack.IF => println("ERROR: Unclosed IF")
+	      case MyStack.WHILE => println("ERROR: Unclosed WHILE")
+	    }
+	  }
+	}
 
   class Assignment(sym: Symbol) {
     def :=(value: Any) = {
@@ -333,16 +398,22 @@ class mysimpleDCG {
   }
 
   object ERROR {
-    def alreadyDef(sym: Symbol) = {
-      println("ERROR:" + sym + " is already defined with type " + Type.toString(Binding.get(sym)))
-    }
-    def wrongType(sym: Symbol, attempted: Int) = {
-      println("ERROR: Attempted to assign type" + Type.toString(attempted) + " to " + sym + ":" + Type.toString(Binding.get(sym)))
-    }
-    def undef(sym: Symbol) = {
-      println("ERROR: attempt to access undefined " + sym)
-    }
-
-  }
+	  def alreadyDef(sym: Symbol) = {
+	    println("ERROR:" + sym + " is already defined with type " + Type.toString(Binding.get(sym)))
+	  }
+	  def wrongType(sym: Symbol, attempted: Int) = {
+	    println("ERROR: Attempted to assign type " + Type.toString(attempted) + " to " + sym + ":" + Type.toString(Binding.get(sym)))
+	  }
+	  def undef(sym: Symbol) = {
+	    println("ERROR: attempt to access undefined "+ sym)
+	  }
+	  def wrongIf(attempted: Int) = {
+	    println("ERROR: IF expected type " + Type.toString(Type.BOOL)+ " got type "+ Type.toString(attempted))
+	  }
+	  def wrongWhile(attempted: Int) = {
+        println("ERROR: WHILE expected type " + Type.toString(Type.BOOL)+ " got type "+ Type.toString(attempted))
+	  }
+	  
+	}
 
 }
