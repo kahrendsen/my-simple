@@ -14,6 +14,15 @@ object Albert extends mysimpleDCG {
          
        ENDFUNCTION
        PRINT_TYPES
+       DECLARE NEWVAR 'boolean := true
+       WHILE('boolean)
+         IF('boolean)
+           PRINT_TYPES
+         ENDWHILE
+       ENDIF
+         
+       
+       ENDALL
        var x = 3
        
   }
