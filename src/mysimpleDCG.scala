@@ -17,6 +17,9 @@ import scala.collection.mutable.Stack
 
 class mysimpleDCG {
 
+  // Current line number
+  var currentLine: Int = 1
+
   //This preserves type information
   object Type {
     val INCOMP = -3
@@ -73,7 +76,7 @@ class mysimpleDCG {
       val mapContaining = getDeepestMapWith(sym)
       if (mapContaining != null) {
         mapContaining.put(sym, v)
-        println("" + sym + ":" + Type.toString(v))
+        //println("" + sym + ":" + Type.toString(v) + " ass: " + sym.hashCode())
       } else
         ERROR.undef(sym)
     }
@@ -97,7 +100,6 @@ class mysimpleDCG {
     }
 
     def printAll() = {
-
       var currentLevel = scopedMaps.size
       for (currentMap <- scopedMaps) {
         println(currentLevel + " levels deep.")
@@ -127,6 +129,7 @@ class mysimpleDCG {
 
   // temporarily assign unknown to the function and its parameter
   class Function(name: Symbol, param: Symbol) {
+    //    currentLine += 1
     Binding.declareValue(name, Type.UNKNOWN)
     Binding.inception()
     functionStack.push((name, param))
@@ -136,6 +139,7 @@ class mysimpleDCG {
 
   // pop off the function stack, go out a scope, and assign the parameter type to the function
   def ENDFUNCTION() = {
+    currentLine += 1
     if (functionStack.length < 1) {
       println("ERROR: No more functions to end")
     }
@@ -149,6 +153,7 @@ class mysimpleDCG {
   }
 
   object RETURN {
+    currentLine += 1
     def apply(value: Any) = {
       val tuple = functionStack.pop
       val name = tuple._1
@@ -170,10 +175,11 @@ class mysimpleDCG {
       }
     }
   }
-  
+
   //TO DO: Be sure to check the type of param with the one stored in FunctionParam
   def CALLFUNCTION(name: Symbol, param: Any): Symbol = {
-    if(Binding.getDeepestMapWith(name) == null)
+    currentLine += 1
+    if (Binding.getDeepestMapWith(name) == null)
       println("ERR: Attempting to call undeclared function " + name)
     return name
   }
@@ -195,10 +201,12 @@ class mysimpleDCG {
   }
 
   def WHILE(cond: Any) = {
+    currentLine += 1
     Conditional(cond, MyStack.WHILE)
   }
 
   def IF(cond: Any) = {
+    currentLine += 1
     Conditional(cond, MyStack.IF)
   }
 
@@ -235,12 +243,14 @@ class mysimpleDCG {
   }
 
   def ENDWHILE() = {
+    currentLine += 1
     if (MyStack.pop() != MyStack.WHILE)
       println("ERROR: Attempting to close unopened 'WHILE'")
     Binding.kick
   }
 
   def ELSE() = {
+    currentLine += 1
     Binding.kick
     if (MyStack.peek() != MyStack.IF)
       println("ERROR: Attempting to ELSE unopened 'IF'")
@@ -248,12 +258,14 @@ class mysimpleDCG {
   }
 
   def ENDIF() = {
+    currentLine += 1
     if (MyStack.pop() != MyStack.IF)
       println("ERROR: Attempting to close unopened 'IF'")
     Binding.kick
   }
 
   def ENDALL() = {
+    currentLine = 1
     while (!MyStack.isEmpty) {
       MyStack.pop match {
         case MyStack.IF => println("ERROR: Unclosed IF")
@@ -275,9 +287,9 @@ class mysimpleDCG {
             if (valueType == Type.UNKNOWN) {
               Binding.put(s, varType)
             } else {
-              if (valueType != varType)
+              if (valueType != varType) {
                 ERROR.wrongType(sym, valueType)
-              else
+              } else
                 Binding.put(sym, valueType)
             }
           }
@@ -289,30 +301,40 @@ class mysimpleDCG {
     def bindToSymbol(value: Any, varType: Int) = {
       value match {
         case a: Int => {
-          if (varType != Type.INT && varType != Type.UNKNOWN)
+          if (varType != Type.INT && varType != Type.UNKNOWN) {
             ERROR.wrongType(sym, Type.INT)
-          Binding.put(sym, Type.INT)
+          } else {
+            Binding.put(sym, Type.INT)
+          }
         }
         case b: Double => {
-          if (varType != Type.FLOAT && varType != Type.UNKNOWN)
+          if (varType != Type.FLOAT && varType != Type.UNKNOWN) {
             ERROR.wrongType(sym, Type.FLOAT)
-          Binding.put(sym, Type.FLOAT)
+          } else {
+            Binding.put(sym, Type.FLOAT)
+          }
         }
         case c: Boolean => {
-          if (varType != Type.BOOL && varType != Type.UNKNOWN)
+          if (varType != Type.BOOL && varType != Type.UNKNOWN) {
             ERROR.wrongType(sym, Type.BOOL)
-          Binding.put(sym, Type.BOOL)
+          } else {
+            Binding.put(sym, Type.BOOL)
+          }
         }
         case d: String => {
-          if (varType != Type.STRING && varType != Type.UNKNOWN)
+          if (varType != Type.STRING && varType != Type.UNKNOWN) {
             ERROR.wrongType(sym, Type.STRING)
-          Binding.put(sym, Type.STRING)
+          } else {
+            Binding.put(sym, Type.STRING)
+          }
         }
         case f: Function0[Int] => {
           val valType = f()
-          if (valType != varType)
+          if (valType != varType) {
             ERROR.wrongType(sym, valType)
-          Binding.put(sym, valType)
+          } else {
+            Binding.put(sym, valType)
+          }
         }
         case _ => {
           ERROR.wrongType(sym, Type.UNKNOWN)
@@ -323,6 +345,7 @@ class mysimpleDCG {
 
   class Thing(sym: Symbol) {
     def :=(value: Any) = {
+
       value match {
         case a: Int => {
           Binding.declareValue(sym, Type.INT)
@@ -343,12 +366,13 @@ class mysimpleDCG {
           } else if (valueType == Type.UNDEF) {
             ERROR.undef(s)
           } else if (valueType == Type.INCOMP) {
-            println("Wrong Types")
+            ERROR.wrongType(s, valueType)
           } else {
             Binding.declareValue(sym, valueType)
           }
         }
       }
+      currentLine += 1
     }
   }
 
@@ -361,7 +385,7 @@ class mysimpleDCG {
   implicit def symbolToAssignment(name: Symbol): Assignment = new Assignment(name)
 
   implicit def binaryRelation(any: Any): MathFunction = MathFunction(any)
-  implicit def booleanRelation(any: Any): BooleanFunction = BooleanFunction(any)
+  //  implicit def booleanRelation(any: Any): BooleanFunction = BooleanFunction(any)
   implicit def compareRelation(any: Any): CompareFunction = CompareFunction(any)
 
   case class CompareFunction(lsh: Any) {
@@ -373,20 +397,20 @@ class mysimpleDCG {
     def ==
     def != */
   }
-  case class BooleanFunction(lhs: Any) {
-    def &&(rhs: Any): Symbol = booleanFunc(rhs)
-    def ||(rhs: Any): Symbol = booleanFunc(rhs)
-
-    def booleanFunc(rhs: Any): Symbol = {
-      val left = typeSide(lhs)
-      val right = typeSide(rhs)
-      if (left != Type.BOOL || right != Type.BOOL)
-        Binding.privatePut(ds, Type.INCOMP)
-      else
-        Binding.privatePut(ds, Type.BOOL)
-      return ds
-    }
-  }
+  //  case class BooleanFunction(lhs: Any) {
+  //    def &&(rhs: Any): Symbol = booleanFunc(rhs)
+  //    def ||(rhs: Any): Symbol = booleanFunc(rhs)
+  //
+  //    def booleanFunc(rhs: Any): Symbol = {
+  //      val left = typeSide(lhs)
+  //      val right = typeSide(rhs)
+  //      if (left != Type.BOOL || right != Type.BOOL)
+  //        Binding.privatePut(ds, Type.INCOMP)
+  //      else
+  //        Binding.privatePut(ds, Type.BOOL)
+  //      return ds
+  //    }
+  //  }
 
   /*
    * We're doing strings. need to do def -(...) and def *(...) etc for all the otehr functions.
@@ -395,12 +419,15 @@ class mysimpleDCG {
   val ds = 'dummySymbol
   case class MathFunction(lhs: Any) {
 
-    def +(rhs: Any): Symbol = arithmetic(rhs)
-    def -(rhs: Any): Symbol = arithmetic(rhs)
-    def *(rhs: Any): Symbol = arithmetic(rhs)
-    def /(rhs: Any): Symbol = arithmetic(rhs)
+    def +(rhs: Any): Symbol = arithmetic(rhs, "+")
+    def -(rhs: Any): Symbol = arithmetic(rhs, "-")
+    def *(rhs: Any): Symbol = arithmetic(rhs, "*")
+    def /(rhs: Any): Symbol = arithmetic(rhs, "/")
 
-    def arithmetic(rhs: Any): Symbol =
+    def &&(rhs: Any): Symbol = boolLogic(rhs, "&&")
+    def ||(rhs: Any): Symbol = boolLogic(rhs, "||")
+
+    def arithmetic(rhs: Any, operator: String): Symbol =
       {
         val left = typeSide(lhs)
         val right = typeSide(rhs)
@@ -409,27 +436,93 @@ class mysimpleDCG {
             right match {
               case Type.INT => Binding.privatePut(ds, Type.INT)
               case Type.FLOAT => Binding.privatePut(ds, Type.FLOAT)
-              case _ => Binding.privatePut(ds, Type.INCOMP)
+              case Type.STRING => {
+                if (operator.equals("+")) {
+                  Binding.privatePut(ds, Type.STRING)
+                } else {
+                  ERROR.wrongTypeInExpression(left, operator, right)
+                  Binding.privatePut(ds, Type.INCOMP)
+                }
+              }
+              case _ => {
+                ERROR.wrongTypeInExpression(left, operator, right)
+                Binding.privatePut(ds, Type.INCOMP)
+              }
             }
           }
           case Type.FLOAT => {
             right match {
               case Type.INT => Binding.privatePut(ds, Type.FLOAT)
               case Type.FLOAT => Binding.privatePut(ds, Type.FLOAT)
-              case _ => Binding.privatePut(ds, Type.INCOMP)
+              case Type.STRING => {
+                if (operator.equals("+")) {
+                  Binding.privatePut(ds, Type.STRING)
+                } else {
+                  ERROR.wrongTypeInExpression(left, operator, right)
+                  Binding.privatePut(ds, Type.INCOMP)
+                }
+              }
+              case _ => {
+                ERROR.wrongTypeInExpression(left, operator, right)
+                Binding.privatePut(ds, Type.INCOMP)
+              }
             }
           }
           case Type.STRING => {
-            if (right == Type.STRING)
-              Binding.privatePut(ds, Type.FLOAT)
-            else
+            if (operator.equals("+")) {
+              Binding.privatePut(ds, Type.STRING)
+            } else {
+              ERROR.wrongTypeInExpression(left, operator, right)
               Binding.privatePut(ds, Type.INCOMP)
+            }
           }
-          case _ => Binding.privatePut(ds, Type.INCOMP)
+          case Type.BOOL => {
+            right match {
+              case Type.STRING => {
+                if (operator.equals("+")) {
+                  Binding.privatePut(ds, Type.STRING)
+                } else {
+                  ERROR.wrongTypeInExpression(left, operator, right)
+                  Binding.privatePut(ds, Type.INCOMP)
+                }
+              }
+              case _ => {
+                ERROR.wrongTypeInExpression(left, operator, right)
+                Binding.privatePut(ds, Type.INCOMP)
+              }
+            }
+          }
+
+          case _ => {
+            ERROR.wrongTypeInExpression(left, operator, right)
+            Binding.privatePut(ds, Type.INCOMP)
+          }
         }
         return ds
       }
 
+    def boolLogic(rhs: Any, operator: String): Symbol =
+      {
+        val left = typeSide(lhs)
+        val right = typeSide(rhs)
+        left match {
+          case Type.BOOL => {
+            right match {
+              case Type.BOOL => Binding.privatePut(ds, Type.BOOL)
+              case _ => {
+                ERROR.wrongTypeInExpression(left, operator, right)
+                Binding.privatePut(ds, Type.INCOMP)
+              }
+            }
+          }
+          case _ =>
+            {
+              ERROR.wrongTypeInExpression(left, operator, right)
+              Binding.privatePut(ds, Type.INCOMP)
+            }
+        }
+        return ds
+      }
   }
   def typeSide(side: Any): Int = {
     side match {
@@ -445,22 +538,25 @@ class mysimpleDCG {
 
   object ERROR {
     def alreadyDef(sym: Symbol) = {
-      println("ERROR:" + sym + " is already defined with type " + Type.toString(Binding.get(sym)))
+      println("ERROR on line " + currentLine + ": " + sym + " is already defined with type " + Type.toString(Binding.get(sym)))
     }
     def wrongType(sym: Symbol, attempted: Int) = {
-      println("ERROR: Attempted to assign type " + Type.toString(attempted) + " to " + sym + ":" + Type.toString(Binding.get(sym)))
+      println("ERROR on line " + currentLine + ": Attempted to assign type " + Type.toString(attempted) + " to " + sym + ":" + Type.toString(Binding.get(sym)))
+    }
+    def wrongTypeInExpression(lhsType: Int, operator: String, rhsType: Int) = {
+      println("ERROR on line " + currentLine + ": Cannot perform " + Type.toString(lhsType) + " " + operator + " " + Type.toString(rhsType))
     }
     def incompType(sym: Symbol) = {
-      println("ERROR: Attempted to assign to " + sym + ":" + Type.toString(Binding.get(sym)) + " Bad Types")
+      println("ERROR on line " + currentLine + ": Attempted to assign to " + sym + ":" + Type.toString(Binding.get(sym)) + " Bad Types")
     }
     def undef(sym: Symbol) = {
-      println("ERROR: attempt to access undefined " + sym)
+      println("ERROR on line " + currentLine + ": attempt to access undefined " + sym)
     }
     def wrongConditional(attempted: Int) = {
-      println("ERROR: conditional expected type " + Type.toString(Type.BOOL) + " got type " + Type.toString(attempted))
+      println("ERROR on line " + currentLine + ": conditional expected type " + Type.toString(Type.BOOL) + " got type " + Type.toString(attempted))
     }
     def wrongWhile(attempted: Int) = {
-      println("ERROR: WHILE expected type " + Type.toString(Type.BOOL) + " got type " + Type.toString(attempted))
+      println("ERROR on line " + currentLine + ":  WHILE expected type " + Type.toString(Type.BOOL) + " got type " + Type.toString(attempted))
     }
 
   }
