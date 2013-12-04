@@ -129,7 +129,7 @@ class mysimpleDCG {
 
   // temporarily assign unknown to the function and its parameter
   class Function(name: Symbol, param: Symbol) {
-    Binding.privatePut(name, Type.UNKNOWN)
+    Binding.privatePut(name, Type.UNDEF)
     Binding.inception()
     functionStack.push((name, param))
     MyStack.push(MyStack.FUNC)
@@ -173,7 +173,7 @@ class mysimpleDCG {
     }
 
     def putFunctionType(name: Symbol, fType: Int) = {
-      if (Binding.get(name) == Type.UNKNOWN) {
+      if (Binding.get(name) == Type.UNDEF) {
         Binding.put(name, fType)
       } else if (Binding.get(name) != fType) {
         ERROR.wrongType(name, fType)
@@ -187,8 +187,11 @@ class mysimpleDCG {
       println("ERROR on line " + currentLine + ": Attempting to call undeclared function " + name)
     val paramType = typeSide(param)
     val expectedParamType = functionParam(name)
+    if(Binding.get(name) == Type.UNDEF)
+      return name
     if(expectedParamType == Type.UNKNOWN){
-      functionParam(name) = paramType
+      Binding.privatePut(ds, paramType)
+      return ds
     }else if(expectedParamType != paramType){
       println("ERROR on line " + currentLine + ": function " + name + " expected type " + Type.toString(expectedParamType) + ", got " + Type.toString(paramType)) 
     }
