@@ -620,7 +620,7 @@ class mysimpleDCG {
       case x: String => return Type.STRING
       case x: Boolean => return Type.BOOL
       case x: Symbol => return Binding.get(x)
-      case x: Function0[Int] => return x()
+      case x: Function0[Symbol] => return Binding.get(x())
       case _ => return Type.UNKNOWN
     }
   }
