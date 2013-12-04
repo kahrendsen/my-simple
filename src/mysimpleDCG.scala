@@ -400,6 +400,7 @@ class mysimpleDCG {
   implicit def binaryRelationStringBoolHack(bool: Boolean) : MathFunction = MathFunction(bool)
   
 
+
   /*
    * We're doing strings. need to do def -(...) and def *(...) etc for all the otehr functions.
    * also need bools. floats/ints are done for +
@@ -412,33 +413,71 @@ class mysimpleDCG {
     def *(rhs: Any): Symbol = arithmetic(rhs, "*")
     def **(rhs: Any): Symbol = arithmetic(rhs, "**")
     def /(rhs: Any): Symbol = arithmetic(rhs, "/")
-    
-    def > (rhs: Any): Symbol = comparator(rhs, ">")
-    def < (rhs: Any): Symbol = comparator(rhs, "<")
-    def >= (rhs: Any): Symbol = comparator(rhs, ">=")
-    def <= (rhs: Any): Symbol = comparator(rhs, "<=")
-    def === (rhs: Any): Symbol = comparator(rhs, "===")
-    def =/= (rhs: Any): Symbol = comparator(rhs, "=/=")
-	
+
+    def >>(rhs: Any): Symbol = bitshift(rhs, ">>")
+    def >>>(rhs: Any): Symbol = bitshift(rhs, ">>>")
+    def <<(rhs: Any): Symbol = bitshift(rhs, "<<")
+
+    def >(rhs: Any): Symbol = comparator(rhs, ">")
+    def <(rhs: Any): Symbol = comparator(rhs, "<")
+    def >=(rhs: Any): Symbol = comparator(rhs, ">=")
+    def <=(rhs: Any): Symbol = comparator(rhs, "<=")
+
+    def ===(rhs: Any): Symbol = equality(rhs, "===")
+    def =/=(rhs: Any): Symbol = equality(rhs, "=/=")
+
     def &&(rhs: Any): Symbol = boolLogic(rhs, "&&")
     def ||(rhs: Any): Symbol = boolLogic(rhs, "||")
-    
+
+    def bitshift(rhs: Any, operator: String): Symbol =
+      {
+        val left = typeSide(lhs)
+        val right = typeSide(rhs)
+        if (right == Type.INT) {
+          if (left == Type.INT)
+            Binding.privatePut(ds, Type.INT)
+          else if (right == Type.FLOAT)
+            Binding.privatePut(ds, Type.FLOAT)
+          else {
+            ERROR.wrongTypeInExpression(left, operator, right)
+            Binding.privatePut(ds, Type.INCOMP)
+          }
+        } else {
+          ERROR.wrongTypeInExpression(left, operator, right)
+          Binding.privatePut(ds, Type.INCOMP)
+        }
+        return ds
+      }
+
+    def equality(rhs: Any, operator: String): Symbol =
+      {
+        val left = typeSide(lhs)
+        val right = typeSide(rhs)
+        if (lhs == Type.STRING && rhs == Type.STRING) {
+          Binding.privatePut(ds, Type.BOOL)
+        } else if ((lhs == Type.INT || lhs == Type.FLOAT) && (rhs == Type.INT || rhs == Type.FLOAT)) {
+          Binding.privatePut(ds, Type.BOOL)
+        } else if (lhs == Type.BOOL && rhs == Type.BOOL) {
+          Binding.privatePut(ds, Type.BOOL)
+        } else {
+          ERROR.wrongTypeInExpression(left, operator, right)
+          Binding.privatePut(ds, Type.INCOMP)
+        }
+        return ds
+      }
+
     def comparator(rhs: Any, operator: String): Symbol =
-    {
-      val left = typeSide(lhs)
-      val right = typeSide(rhs)
-      
-      if((lhs==Type.INT||lhs==Type.FLOAT)&&(rhs==Type.INT||rhs==Type.FLOAT))
       {
-        Binding.privatePut(ds,Type.BOOL)
+        val left = typeSide(lhs)
+        val right = typeSide(rhs)
+        if ((lhs == Type.INT || lhs == Type.FLOAT) && (rhs == Type.INT || rhs == Type.FLOAT)) {
+          Binding.privatePut(ds, Type.BOOL)
+        } else {
+          ERROR.wrongTypeInExpression(left, operator, right)
+          Binding.privatePut(ds, Type.INCOMP)
+        }
+        return ds
       }
-      else
-      {
-        ERROR.wrongTypeInExpression(left, operator, right)
-        Binding.privatePut(ds,Type.INCOMP)
-      }
-      return ds
-    }
 
     def arithmetic(rhs: Any, operator: String): Symbol =
       {
@@ -608,6 +647,7 @@ class mysimpleDCG {
     }
     def wrongWhile(attempted: Int) = {
       println("ERROR on line " + currentLine + ":  WHILE expected type " + Type.toString(Type.BOOL) + " got type " + Type.toString(attempted))
+
     }
 
   }

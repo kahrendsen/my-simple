@@ -56,7 +56,7 @@ object ScopingFuncTest extends mysimpleDCG {
 object LineNumbersTest extends mysimpleDCG {
   def main(args: Array[String]) = {
     DECLARE NEWVAR 'foo := 0
-    'foo := 'foo + 1
+    'foo := 'foo + 1 + true
     ENDALL
   }
 }
@@ -83,6 +83,13 @@ object LogicalOpsTest extends mysimpleDCG {
     //	  DECLARE NEWVAR 'blahblah := 1 === 1
     DECLARE NEWVAR 'Cobb := 1 =/= 1
     ENDALL
+  }
+}
+
+object BitShift extends mysimpleDCG {
+  def main(args: Array[String]) = {
+    DECLARE NEWVAR 'Something := 4
+    DECLARE NEWVAR 'Happy := 5 >>> 'Something
   }
 }
 
