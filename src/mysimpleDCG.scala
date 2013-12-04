@@ -46,10 +46,14 @@ class mysimpleDCG {
 
   def PRINT_TYPES = Binding.printAll()
 
+  val mainFunction: Symbol = 'mainFunction
   object Binding {
     var scopedMaps = new LinkedList[HashMap[Symbol, Int]]()
     inception()
     privatePut(ds, Type.UNKNOWN)
+    privatePut(mainFunction, Type.UNDEF)
+    MyStack.push(MyStack.FUNC)
+    functionStack.push((mainFunction, mainFunction))
 
     // we use this when we go in a scope
     def inception() = scopedMaps = scopedMaps.+:(new HashMap[Symbol, Int]())
@@ -280,13 +284,29 @@ class mysimpleDCG {
 
   def ENDALL() = {
     currentLine = 1
+    MyStack.pop match{
+        case MyStack.IF => println("ERROR: Unclosed IF")
+        case MyStack.WHILE => println("ERROR: Unclosed WHILE")
+        case MyStack.FUNC => {
+          val name:Symbol = functionStack.pop._1
+          if(name != mainFunction)
+            println("ERROR: Unended FUNCTION " + name)
+        }
+    }
     while (!MyStack.isEmpty) {
       MyStack.pop match {
         case MyStack.IF => println("ERROR: Unclosed IF")
         case MyStack.WHILE => println("ERROR: Unclosed WHILE")
-        case MyStack.FUNC => println("ERROR: Unended FUNCTION")
+        case MyStack.FUNC => {
+          val name:Symbol = functionStack.pop._1
+          if(name != mainFunction)
+            println("ERROR: Unended FUNCTION " + name)
+        }
       }
     }
+    val mainFunctionType = Binding.get(mainFunction)
+    if(mainFunctionType != Type.UNDEF)
+      println("Main Program returns type " + Type.toString(mainFunctionType))
   }
 
   class Assignment(sym: Symbol) {
