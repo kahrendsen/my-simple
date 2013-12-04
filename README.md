@@ -7,8 +7,9 @@ my-simple
 ####Goals
 - [x] Form the super awesome team
 - [x] Ask Rellermeyer if our idea is super awesome
-- [ ] Getting SOMETHING to work
-- [ ] Type checking for variables
+- [x] Getting SOMETHING to work
+- [x] Type checking for variables
+- [ ] Don't derp too much while doing presentation
 
 ####Caveats from Rellermeyer
 * While loops will be hard
