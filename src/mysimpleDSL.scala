@@ -12,6 +12,11 @@ object Albert extends mysimpleDCG {
     println("--------------------------------")
     println("Test Case: Line Number 03")
     test_lineNumbers03();
+    
+    println("--------------------------------")
+    println("Test Case: Logical Operators 01")
+    test_logicalOperators1();
+    
   }
   
   // Tests for line numbers
@@ -24,6 +29,7 @@ object Albert extends mysimpleDCG {
        DECLARE NEWVAR 'kristen := 10 //6
        DECLARE NEWVAR 'lin := "hi"  //7
        DECLARE NEWVAR 'linnnnnn := 'albert + 'lin
+       DECLARE NEWVAR 'happy := 1.0 + 4 && 2 + 1 * 3
        ENDALL
   }
   
@@ -53,6 +59,12 @@ object Albert extends mysimpleDCG {
        //DECLARE NEWVAR 'kendall := true + "" 
        //DECLARE NEWVAR 'hello := 4 + 'kendall + 1 + 1.0 
        ENDALL
+  }
+  // Test for boolean operators and comparators
+  def test_logicalOperators1(){
+//	  DECLARE NEWVAR 'blahblah := 1 === 1
+	  DECLARE NEWVAR 'Cobb := 1 =/= 1
+	  ENDALL
   }
 }
 

@@ -388,7 +388,8 @@ class mysimpleDCG {
   //  implicit def booleanRelation(any: Any): BooleanFunction = BooleanFunction(any)
   implicit def compareRelation(any: Any): CompareFunction = CompareFunction(any)
 
-  case class CompareFunction(lsh: Any) {
+  case class CompareFunction(lhs: Any) {
+
     /*! TODO
     def >
     def <
@@ -396,6 +397,29 @@ class mysimpleDCG {
     def <=
     def ==
     def != */
+    /*
+    def > (rhs: Any): Symbol = comparator(rhs, ">")
+    def < (rhs: Any): Symbol = comparator(rhs, "<")
+    def >= (rhs: Any): Symbol = comparator(rhs, ">=")
+    def <= (rhs: Any): Symbol = comparator(rhs, "<=")
+    def == (rhs: Any): Symbol = comparator(rhs, "==")
+    def != (rhs: Any): Symbol = comparator(rhs, "!=")
+    
+    2 + 4 > 5
+    
+    def comparator(rhs: Any, operator: String): Symbol =
+      {
+        val left = typeSide(lhs)
+        val right = typeSide(rhs)
+        left match {
+          case Type.INT => {
+            right match {
+              case Type.INT => Binding.privatePut(ds, Type.INT)
+            }
+          }
+        }
+      }
+*/
   }
   //  case class BooleanFunction(lhs: Any) {
   //    def &&(rhs: Any): Symbol = booleanFunc(rhs)
@@ -422,10 +446,74 @@ class mysimpleDCG {
     def +(rhs: Any): Symbol = arithmetic(rhs, "+")
     def -(rhs: Any): Symbol = arithmetic(rhs, "-")
     def *(rhs: Any): Symbol = arithmetic(rhs, "*")
+    def **(rhs: Any): Symbol = arithmetic(rhs, "**")
     def /(rhs: Any): Symbol = arithmetic(rhs, "/")
-
+    
+    def > (rhs: Any): Symbol = comparator(rhs, ">")
+    def < (rhs: Any): Symbol = comparator(rhs, "<")
+    def >= (rhs: Any): Symbol = comparator(rhs, ">=")
+    def <= (rhs: Any): Symbol = comparator(rhs, "<=")
+    def === (rhs: Any): Symbol = comparator(rhs, "===")
+    def =/= (rhs: Any): Symbol = comparator(rhs, "=/=")
+	
     def &&(rhs: Any): Symbol = boolLogic(rhs, "&&")
     def ||(rhs: Any): Symbol = boolLogic(rhs, "||")
+    
+    def comparator(rhs: Any, operator: String): Symbol =
+    {
+      val left = typeSide(lhs)
+//      println("LEFT LOOK HERE"+rhs)
+      val right = typeSide(rhs)
+//      left match {
+//          case Type.INT => {
+//            right match {
+//              case Type.INT => Binding.privatePut(ds, Type.INT)
+//              case Type.FLOAT => Binding.privatePut(ds, Type.FLOAT)
+//              case Type.STRING => {
+//                if (operator.equals("+")) {
+//                  Binding.privatePut(ds, Type.STRING)
+//                } else {
+//                  ERROR.wrongTypeInExpression(left, operator, right)
+//                  Binding.privatePut(ds, Type.INCOMP)
+//                }
+//              }
+//              case _ => {
+//                ERROR.wrongTypeInExpression(left, operator, right)
+//                Binding.privatePut(ds, Type.INCOMP)
+//              }
+//            }
+//          }
+//          case Type.FLOAT => {
+//            right match {
+//              case Type.INT => Binding.privatePut(ds, Type.FLOAT)
+//              case Type.FLOAT => Binding.privatePut(ds, Type.FLOAT)
+//              case Type.STRING => {
+//                if (operator.equals("+")) {
+//                  Binding.privatePut(ds, Type.STRING)
+//                } else {
+//                  ERROR.wrongTypeInExpression(left, operator, right)
+//                  Binding.privatePut(ds, Type.INCOMP)
+//                }
+//              }
+//              case _ => {
+//                ERROR.wrongTypeInExpression(left, operator, right)
+//                Binding.privatePut(ds, Type.INCOMP)
+//              }
+//            } 
+//          }
+//      }
+      
+      if((lhs==Type.INT||lhs==Type.FLOAT)&&(rhs==Type.INT||rhs==Type.FLOAT))
+      {
+        Binding.privatePut(ds,Type.BOOL)
+      }
+      else
+      {
+        ERROR.wrongTypeInExpression(left, operator, right)
+        Binding.privatePut(ds,Type.INCOMP)
+      }
+      return ds
+    }
 
     def arithmetic(rhs: Any, operator: String): Symbol =
       {
