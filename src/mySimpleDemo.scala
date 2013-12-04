@@ -7,7 +7,7 @@ object SimpleTest extends mysimpleDCG {
         RETURN ('random)
       ENDFUNCTION
       PRINT_TYPES
-      'matt := CALLFUNCTION('happy, true)
+      'matt := CALLFUNCTION('happy, 4)
       'matt := CALLFUNCTION('happy, 5)
       ENDALL
     }

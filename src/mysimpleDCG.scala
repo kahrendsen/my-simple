@@ -173,7 +173,6 @@ class mysimpleDCG {
     }
 
     def putFunctionType(name: Symbol, fType: Int) = {
-      println("assigning " + name + " " + Type.toString(fType))
       if (Binding.get(name) == Type.UNDEF) {
         Binding.put(name, fType)
       } else if (Binding.get(name) != fType) {
