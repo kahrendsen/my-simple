@@ -49,7 +49,7 @@ object ScopingFuncTest extends mysimpleDCG {
 object LineNumbersTest extends mysimpleDCG {
   def main(args: Array[String]) = {
     DECLARE NEWVAR 'foo := 0
-    'foo := 'foo + 1
+    'foo := 'foo + 1 + true
     ENDALL
   }
 }
