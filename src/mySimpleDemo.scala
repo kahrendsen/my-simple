@@ -33,7 +33,7 @@ object LoopTest extends mysimpleDCG {
   // Different scope
   def main(args: Array[String]) = {
     DECLARE NEWVAR 'foo := 0
-    WHILE(true)
+    WHILE(2)
     'foo := 'foo + 1
     ENDWHILE
     ENDALL
@@ -82,6 +82,7 @@ object LogicalOpsTest extends mysimpleDCG {
   def main(args: Array[String]) = {
     //	  DECLARE NEWVAR 'blahblah := 1 === 1
     DECLARE NEWVAR 'Cobb := 1 =/= 1
+    DECLARE NEWVAR 'counter := 'Cobb + 1
     ENDALL
   }
 }
