@@ -2,14 +2,7 @@
 object SimpleTest extends mysimpleDCG {
   def main(args: Array[String]) = {
     {
-      DECLARE NEWVAR 'matt := 5
-      DECLARE FUNCTION('happy, 'random)
-        RETURN (true)
-      ENDFUNCTION
-      'matt := CALLFUNCTION('happy, 4)
-      'matt := CALLFUNCTION('happy, 5)
-      RETURN ('matt)
-      RETURN (true)
+      RETURN ("hello")
       ENDALL
     }
   }
@@ -89,7 +82,7 @@ object LogicalOpsTest extends mysimpleDCG {
 
 object BitShift extends mysimpleDCG {
   def main(args: Array[String]) = {
-    DECLARE NEWVAR 'Something := 4
+    DECLARE NEWVAR 'Something := true
     DECLARE NEWVAR 'Happy := 5 >> 'Something
   }
 }

@@ -46,14 +46,8 @@ class mysimpleDCG {
 
   def PRINT_TYPES = Binding.printAll()
 
-  val mainFunction: Symbol = 'mainFunction
   object Binding {
     var scopedMaps = new LinkedList[HashMap[Symbol, Int]]()
-    inception()
-    privatePut(ds, Type.UNKNOWN)
-    privatePut(mainFunction, Type.UNDEF)
-    MyStack.push(MyStack.FUNC)
-    functionStack.push((mainFunction, mainFunction))
 
     // we use this when we go in a scope
     def inception() = scopedMaps = scopedMaps.+:(new HashMap[Symbol, Int]())
@@ -131,6 +125,15 @@ class mysimpleDCG {
   // this is used for type checking when we attempt to call it later
   var functionParam = new HashMap[Symbol, Int]
 
+  // We need to call all of this at initialization
+  // I don't know why we chose to put it here
+  val mainFunction: Symbol = 'mainFunction
+  Binding.inception()
+  Binding.privatePut(ds, Type.UNKNOWN)
+  Binding.privatePut(mainFunction, Type.UNDEF)
+  MyStack.push(MyStack.FUNC)
+  functionStack.push((mainFunction, mainFunction))
+  
   // temporarily assign unknown to the function and its parameter
   class Function(name: Symbol, param: Symbol) {
     Binding.privatePut(name, Type.UNDEF)
