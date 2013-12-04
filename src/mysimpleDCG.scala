@@ -74,6 +74,7 @@ class mysimpleDCG {
       val mapContaining = getDeepestMapWith(sym)
       if (mapContaining != null) {
         mapContaining.put(sym, v)
+        println("" + sym + ":" + Type.toString(v))
         //println("" + sym + ":" + Type.toString(v) + " ass: " + sym.hashCode())
       } else
         ERROR.undef(sym)
@@ -102,7 +103,7 @@ class mysimpleDCG {
       for (currentMap <- scopedMaps) {
         println(currentLevel + " levels deep.")
         for ((key, value) <- currentMap) {
-          if (key != ds) {
+          if (key != ds && key != null) {
             print("" + key + " --> :")
             value match {
               case Type.STRING => println("String")

@@ -2,7 +2,14 @@
 object SimpleTest extends mysimpleDCG {
   def main(args: Array[String]) = {
     {
-      RETURN ("hello")
+      DECLARE NEWVAR 'temp := "hello"
+      DECLARE FUNCTION('matt, 'para)
+        RETURN('para)
+      ENDFUNCTION
+      DECLARE NEWVAR 'something := CALLFUNCTION('matt, 5)
+      DECLARE NEWVAR 'something2 := CALLFUNCTION('matt, "String")
+      RETURN ('something)
+      PRINT_TYPES
       ENDALL
     }
   }
@@ -22,12 +29,23 @@ object DeclareTest extends mysimpleDCG {
     ENDALL
   }
 }
+
 object LoopTest extends mysimpleDCG {
+  def main(args: Array[String]) = {
+    DECLARE NEWVAR 'foo := 0
+    WHILE(true)
+      'foo := 'foo + 1
+    ENDWHILE
+    ENDALL
+  }
+}
+
+object LoopTestError extends mysimpleDCG {
   // Different scope
   def main(args: Array[String]) = {
     DECLARE NEWVAR 'foo := 0
     WHILE(2)
-    'foo := 'foo + 1
+      'foo := 'foo + 1
     ENDWHILE
     ENDALL
   }
@@ -36,12 +54,39 @@ object LoopTest extends mysimpleDCG {
 object ScopingFuncTest extends mysimpleDCG {
   def main(args: Array[String]) =
     {
-      DECLARE FUNCTION ('hello, 'hi)
-      WHILE(true)
-      DECLARE NEWVAR 'foo := 600
-      ENDWHILE
-      ENDFUNCTION
       DECLARE NEWVAR 'foo := true
+      DECLARE FUNCTION ('hello, 'hi)
+        WHILE(true)
+          DECLARE NEWVAR 'foo := 600
+        ENDWHILE
+      ENDFUNCTION
+      'foo := true
+      RETURN ("hello")
+      ENDALL
+    }
+}
+
+object ScopingFuncTestError extends mysimpleDCG{
+  def main(args: Array[String]) =
+    {
+      DECLARE NEWVAR 'foo := true
+      DECLARE FUNCTION ('hello, 'hi)
+        WHILE(true)
+          'foo := 600
+        ENDWHILE
+      ENDFUNCTION
+      'foo := true
+      RETURN ("hello")
+      ENDALL
+    }
+}
+
+object BinaryParenthesisTest extends mysimpleDCG{
+  def main(args: Array[String]) =
+    {
+      DECLARE NEWVAR 'foo := 5
+      DECLARE NEWVAR 'bar := 4.0
+      'bar := ('foo + 'bar) ** ('foo - 'bar)
       ENDALL
     }
 }
@@ -84,6 +129,52 @@ object BitShift extends mysimpleDCG {
   def main(args: Array[String]) = {
     DECLARE NEWVAR 'Something := true
     DECLARE NEWVAR 'Happy := 5 >> 'Something
+  }
+}
+
+object If extends mysimpleDCG{
+  def main(args: Array[String]) = {
+    IF(true)
+    ENDIF
+    RETURN (5.0)
+    ENDALL
+  }
+}
+
+object IfError extends mysimpleDCG{
+  def main(args: Array[String]) = {
+    IF(true)
+    RETURN (5.0)
+    ENDALL
+  }
+}
+
+object UnclosedError extends mysimpleDCG {
+  def main(args: Array[String]) = {
+    DECLARE NEWVAR 'matthew := 4.0
+    IF(true)
+      WHILE(true)
+        'matthew := 5.0
+      ENDIF
+    ENDWHILE
+    ENDALL
+  }
+}
+  
+ object ImmediateReturn extends mysimpleDCG {
+   def main(args: Array[String]) = {
+    RETURN ("HELLO WORLD!")
+    ENDALL
+  }
+ }
+object FunctionCall extends mysimpleDCG{
+  def main(args: Array[String]) = {
+    DECLARE FUNCTION ('hello, 'param)
+      DECLARE NEWVAR 'random := 5.0 + 'param
+      RETURN ('param)
+    ENDFUNCTION
+    RETURN (CALLFUNCTION('hello, 4.0))
+    ENDALL
   }
 }
 
