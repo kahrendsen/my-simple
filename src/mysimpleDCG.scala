@@ -157,7 +157,6 @@ class mysimpleDCG {
   }
 
   object RETURN {
-    currentLine += 1
     def apply(value: Any) = {
       val tuple = functionStack.pop
       val name = tuple._1
@@ -174,6 +173,7 @@ class mysimpleDCG {
           putFunctionType(name, typeOfS)
         }
       }
+      currentLine += 1
     }
 
     def putFunctionType(name: Symbol, fType: Int) = {

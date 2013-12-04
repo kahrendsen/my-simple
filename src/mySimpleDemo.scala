@@ -4,13 +4,12 @@ object SimpleTest extends mysimpleDCG {
     {
       DECLARE NEWVAR 'matt := 5
       DECLARE FUNCTION('happy, 'random)
-        RETURN ('random)
+        RETURN (true)
       ENDFUNCTION
-      PRINT_TYPES
       'matt := CALLFUNCTION('happy, 4)
       'matt := CALLFUNCTION('happy, 5)
       RETURN ('matt)
-      RETURN ('matt)
+      RETURN (true)
       ENDALL
     }
   }
