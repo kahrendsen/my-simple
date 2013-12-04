@@ -8,15 +8,21 @@ class MattsDream extends mysimpleDCG {
 
   def printTestTitle(str:String)
   {
+    println("")
     println("Test Case: " + str)
   }  
+  
+  @Test
+  def thisShouldFail()
+  {
+    printTestTitle("This Should Fail")		
+	DECLARE NEWVAR 'blahhh := 1
+	ENDALL   
+  }
 
   // Tests for line numbers
   @Test
   def test_lineNumbers01() {
-    var myOut = new ByteArrayOutputStream();
-    System.setOut(new PrintStream(myOut));    
-    
     printTestTitle("Line Number 1")
     DECLARE NEWVAR 'matt := 10 //1
     DECLARE NEWVAR 'mootaz := 1 //2
@@ -26,14 +32,12 @@ class MattsDream extends mysimpleDCG {
     DECLARE NEWVAR 'kristen := 10 //6
     DECLARE NEWVAR 'lin := "hi" //7
     DECLARE NEWVAR 'linnnnnn := 'albert + 'lin
-    DECLARE NEWVAR 'happy := 1.0 + 4 && 2 + 1 * 3
+    DECLARE NEWVAR 'happy := 1.0 + 4 + 2 + 1 * 3
     ENDALL
-    
-    var standardOutput = myOut.toString();
-    println(standardOutput)
   }
 
   // Different scope
+  @Test
   def test_lineNumbers02() {
     printTestTitle("Line Number 2")
     DECLARE NEWVAR 'foo := 0
@@ -44,6 +48,7 @@ class MattsDream extends mysimpleDCG {
   }
 
   // Same scope
+  @Test
   def test_lineNumbers03() {
     printTestTitle("Line Number 3")
     DECLARE NEWVAR 'foo := 0
@@ -52,12 +57,14 @@ class MattsDream extends mysimpleDCG {
   }
 
   // String corner case
+  @Test
   def test_stringAndBoolConcat() {
     printTestTitle("String and bool concat")
     DECLARE NEWVAR 'bar := "Hi" + true
   }
 
   // Test for arithmetic operators and string concat
+  @Test
   def test_arithmeticOperators1() {
     printTestTitle("Arith Ops 1")
     DECLARE NEWVAR 'matt := 10
@@ -68,7 +75,9 @@ class MattsDream extends mysimpleDCG {
     //DECLARE NEWVAR 'hello := 4 + 'kendall + 1 + 1.0 
     ENDALL
   }
+  
   // Test for boolean operators and comparators
+  @Test
   def test_logicalOperators1() {
     printTestTitle("Logical ops 1")
     //	  DECLARE NEWVAR 'blahblah := 1 === 1

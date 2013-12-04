@@ -628,24 +628,31 @@ class mysimpleDCG {
   object ERROR {
     def alreadyDef(sym: Symbol) = {
       println("ERROR on line " + currentLine + ": " + sym + " is already defined with type " + Type.toString(Binding.get(sym)))
+      throw new Exception("AGHHHH!")
     }
     def wrongType(sym: Symbol, attempted: Int) = {
       println("ERROR on line " + currentLine + ": Attempted to assign type " + Type.toString(attempted) + " to " + sym + ":" + Type.toString(Binding.get(sym)))
+      throw new Exception("AGHHHH!")
     }
     def wrongTypeInExpression(lhsType: Int, operator: String, rhsType: Int) = {
       println("ERROR on line " + currentLine + ": Cannot perform " + Type.toString(lhsType) + " " + operator + " " + Type.toString(rhsType))
+      throw new Exception("AGHHHH!")
     }
     def incompType(sym: Symbol) = {
       println("ERROR on line " + currentLine + ": Attempted to assign to " + sym + ":" + Type.toString(Binding.get(sym)) + " Bad Types")
+      throw new Exception("AGHHHH!")
     }
     def undef(sym: Symbol) = {
       println("ERROR on line " + currentLine + ": attempt to access undefined " + sym)
+      throw new Exception("AGHHHH!")
     }
     def wrongConditional(attempted: Int) = {
       println("ERROR on line " + currentLine + ": conditional expected type " + Type.toString(Type.BOOL) + " got type " + Type.toString(attempted))
+      throw new Exception("AGHHHH!")
     }
     def wrongWhile(attempted: Int) = {
       println("ERROR on line " + currentLine + ":  WHILE expected type " + Type.toString(Type.BOOL) + " got type " + Type.toString(attempted))
+      throw new Exception("AGHHHH!")
     }
 
   }
