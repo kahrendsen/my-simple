@@ -172,7 +172,7 @@ class mysimpleDCG {
   }
   
   //TO DO: Be sure to check the type of param with the one stored in FunctionParam
-  def CALLFUNCTION(name: Symbol, param: Symbol): Symbol = {
+  def CALLFUNCTION(name: Symbol, param: Any): Symbol = {
     if(Binding.getDeepestMapWith(name) == null)
       println("ERR: Attempting to call undeclared function " + name)
     return name
