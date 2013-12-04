@@ -387,7 +387,8 @@ class mysimpleDCG {
   implicit def binaryRelation(any: Any): MathFunction = MathFunction(any)
   //  implicit def booleanRelation(any: Any): BooleanFunction = BooleanFunction(any)
   implicit def compareRelation(any: Any): CompareFunction = CompareFunction(any)
-
+  implicit def binaryRelationStringBoolHack(bool: Boolean) : MathFunction = MathFunction(bool)
+  
   case class CompareFunction(lhs: Any) {
 
     /*! TODO
