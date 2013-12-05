@@ -48,8 +48,6 @@ class mysimpleDCG {
 
   object Binding {
     var scopedMaps = new LinkedList[HashMap[Symbol, Int]]()
-    inception()
-    privatePut(ds, Type.UNKNOWN)
 
     // we use this when we go in a scope
     def inception() = scopedMaps = scopedMaps.+:(new HashMap[Symbol, Int]())
@@ -76,6 +74,7 @@ class mysimpleDCG {
       val mapContaining = getDeepestMapWith(sym)
       if (mapContaining != null) {
         mapContaining.put(sym, v)
+        println("" + sym + ":" + Type.toString(v))
         //println("" + sym + ":" + Type.toString(v) + " ass: " + sym.hashCode())
       } else
         ERROR.undef(sym)
@@ -104,7 +103,7 @@ class mysimpleDCG {
       for (currentMap <- scopedMaps) {
         println(currentLevel + " levels deep.")
         for ((key, value) <- currentMap) {
-          if (key != ds) {
+          if (key != ds && key != null) {
             print("" + key + " --> :")
             value match {
               case Type.STRING => println("String")
@@ -127,6 +126,15 @@ class mysimpleDCG {
   // this is used for type checking when we attempt to call it later
   var functionParam = new HashMap[Symbol, Int]
 
+  // We need to call all of this at initialization
+  // I don't know why we chose to put it here
+  val mainFunction: Symbol = 'mainFunction
+  Binding.inception()
+  Binding.privatePut(ds, Type.UNKNOWN)
+  Binding.privatePut(mainFunction, Type.UNDEF)
+  MyStack.push(MyStack.FUNC)
+  functionStack.push((mainFunction, mainFunction))
+  
   // temporarily assign unknown to the function and its parameter
   class Function(name: Symbol, param: Symbol) {
     Binding.privatePut(name, Type.UNDEF)
@@ -153,7 +161,6 @@ class mysimpleDCG {
   }
 
   object RETURN {
-    currentLine += 1
     def apply(value: Any) = {
       val tuple = functionStack.pop
       val name = tuple._1
@@ -170,6 +177,7 @@ class mysimpleDCG {
           putFunctionType(name, typeOfS)
         }
       }
+      currentLine += 1
     }
 
     def putFunctionType(name: Symbol, fType: Int) = {
@@ -280,13 +288,29 @@ class mysimpleDCG {
 
   def ENDALL() = {
     currentLine = 1
+    MyStack.pop match{
+        case MyStack.IF => println("ERROR: Unclosed IF")
+        case MyStack.WHILE => println("ERROR: Unclosed WHILE")
+        case MyStack.FUNC => {
+          val name:Symbol = functionStack.pop._1
+          if(name != mainFunction)
+            println("ERROR: Unended FUNCTION " + name)
+        }
+    }
     while (!MyStack.isEmpty) {
       MyStack.pop match {
         case MyStack.IF => println("ERROR: Unclosed IF")
         case MyStack.WHILE => println("ERROR: Unclosed WHILE")
-        case MyStack.FUNC => println("ERROR: Unended FUNCTION")
+        case MyStack.FUNC => {
+          val name:Symbol = functionStack.pop._1
+          if(name != mainFunction)
+            println("ERROR: Unended FUNCTION " + name)
+        }
       }
     }
+    val mainFunctionType = Binding.get(mainFunction)
+    if(mainFunctionType != Type.UNDEF)
+      println("Main Program returns type " + Type.toString(mainFunctionType))
   }
 
   class Assignment(sym: Symbol) {
