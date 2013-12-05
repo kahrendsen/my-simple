@@ -32,11 +32,35 @@ object LoopTest extends mysimpleDCG {
   // Different scope
   def main(args: Array[String]) = {
     DECLARE NEWVAR 'foo := 0
-    WHILE(2)
-    'foo := 'foo + 1
+    WHILE(1)
+    	'foo := 'foo + 1
     ENDWHILE
     ENDALL
   }
+}
+
+object FunctionParameterInferenceTest_FloatSuccess extends mysimpleDCG {
+  def main(args: Array[String]) =
+    {
+      DECLARE FUNCTION ('sqrt, 'x)
+      	DECLARE NEWVAR 'result := 'x ** 0.5
+      	RETURN('result)
+      ENDFUNCTION
+      DECLARE NEWVAR 'y := CALLFUNCTION('sqrt, 9.0)
+      ENDALL
+    }
+}
+
+object FunctionParameterInferenceTest_IntError extends mysimpleDCG {
+  def main(args: Array[String]) =
+    {
+      DECLARE FUNCTION ('sqrt, 'x)
+      	DECLARE NEWVAR 'result := 'x ** 0.5
+      	RETURN('result)
+      ENDFUNCTION
+      DECLARE NEWVAR 'y := CALLFUNCTION('sqrt, -4)
+      ENDALL
+    }
 }
 
 object ScopingFuncTest extends mysimpleDCG {
@@ -44,7 +68,7 @@ object ScopingFuncTest extends mysimpleDCG {
     {
       DECLARE FUNCTION ('hello, 'hi)
       WHILE(true)
-      DECLARE NEWVAR 'foo := 600
+      	DECLARE NEWVAR 'foo := 600
       ENDWHILE
       ENDFUNCTION
       DECLARE NEWVAR 'foo := true
@@ -77,6 +101,18 @@ object ArithOpAndStrConcat extends mysimpleDCG {
     ENDALL
   }
 }
+
+object ParameterTest01 extends mysimpleDCG {
+  def main(args: Array[String]) = {
+	DECLARE FUNCTION('hello, 'hi)
+		DECLARE NEWVAR 'foo := 'hi + 2.0
+		RETURN ('foo)
+	ENDFUNCTION
+	DECLARE NEWVAR 'x := CALLFUNCTION('hello, 3.2)
+	DECLARE NEWVAR 'y := CALLFUNCTION('hello, "qwerty")
+  }
+}
+
 object LogicalOpsTest extends mysimpleDCG {
   def main(args: Array[String]) = {
     //	  DECLARE NEWVAR 'blahblah := 1 === 1
