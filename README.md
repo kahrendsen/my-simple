@@ -65,3 +65,5 @@ Team Members
 * Lyee Chong
 * Albert Haque
 * Matthew Lau
+
+(Please note that work on the project was done in the same room on two computers, which is why the overwhelming majority of commits come from two contributors. All four team members worked on the project together) 
